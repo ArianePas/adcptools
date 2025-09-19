@@ -1,4 +1,5 @@
 % Script to play for Ariane
+%found it!
 
 %% Path management
 RF = 'C:\Users\jongb013\Documents\PHD\2-Programming\'; %RootFolder
