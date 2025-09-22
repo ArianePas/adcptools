@@ -6,6 +6,7 @@ clc
 %% Path management
 RF = 'C:\Users\arian\Documents\internship'; %RootFolder
 addpath(genpath(strcat(RF,'/git/adcptools'))); %path to ADCPTools
+addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processing"))
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 
 %% Quick documentation walkthrough - comment out
@@ -104,7 +105,7 @@ flow = flow_solv.get_solution(); % possibly modify
 flow.plot_solution()
 
 %% Post-Processing - focus on decomposition of the solution
-addpath(genpath(strcat(RF,'git\adcptools\post_processing')))
+addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
 tim = flow.solver.adcp.time;
 
 Tlim(1)= min(tim);
@@ -183,3 +184,6 @@ semilogx(reg_pars_plot', [CV{:,1}])
 xlabel('reg pars')
 ylabel('generalization error')
 title('lambda vs scaled generalization error')
+
+%% trial
+plot_solution(flow,'sol_idx',1)
