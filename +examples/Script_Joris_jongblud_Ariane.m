@@ -1,13 +1,161 @@
-clear all
+% Script to play for Ariane
 close all
-RF = ''; %RootFolder
+clc
+clear all
+%%
+dir = 'C:\Users\arian\Documents\internship\datafiles matlab\portneuf';
+addpath(genpath(dir))
+load('portneuf2009.mat')
+%% Path management
+RF = 'C:\Users\arian\Documents\internship'; %RootFolder
+addpath(genpath('C:\Users\arian\Documents\internship\git\adcptools')); %path to ADCPTools of Bart Vermeulen
+% addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 
-addpath(genpath(strcat(RF,'Analysis\Tools\adcptools-master'))); %path to ADCPTools
-addpath(strcat(RF,'Analysis\Tools\loess-master')); %path to loess-master
-% addpath(strcat(RF,'Tools\T_Tide'))
-addpath(strcat(RF,'Analysis\Tools\BrewerMap-master')); %path to BrewerMap (see github)
-% addpath(strcat(RF,'Tools\subaxis'));
-addpath(strcat(RF, 'Analysis\Tools\latlonutm'))
+%% Quick documentation walkthrough - comment out
+
+%open_adcptools_documentation()
+
+%% Constituents
+
+constituents = {'M2', 'M4'};
+
+%% Loading in the data 
+% %test for quebec script
+addpath('./Donnees_validation'); %path to data
+%dat = rdi.readDeployment('rijn', './data');
+%dat = rdi.readDeployment('Lauzon_0_0', './data/Lauzon_0');
+
+% addpath('./data'); %path to data
+%dat = rdi.readDeployment('rijn', './data');
+dat = rdi.readDeployment('Portneuf_0_0', './2009/ADCP 2009/Portneuf_0');
+%% Load water level data
+load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3300Portneuf2009_HNE_NMM_3min.mat')
+
+
+%% waterlevel
+filt = ~isnan(h);
+water_level = VaryingWaterLevel(datetime(t(filt), 'ConvertFrom', 'datenum'), h(filt));
+water_level.model = TidalScalarModel(constituents = constituents);
+water_level.model.scalar_name = 'eta'; % Scalar
+water_level.get_parameters();
+
+%% Modify the following code to analyze the data
+
+V = rdi.VMADCP(dat);
+%  V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
+
+V.water_level_object = water_level;
+
+B = BathymetryScatteredPoints(V);
+
+%Bfilt = find(B.known(2,:)>0);
+
+B.interpolator.span = .001;
+figure;
+B.plot
+
+V.filters = Filter;
+%V.shipvel_provider = ShipVelocityFromBT; % possibly modify
+
+
+%figure;
+%hold on
+%V.plot_all
+
+[ef, xs] = cross_section_selector(V);
+
+%% Mesh for plotting
+
+mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
+
+mesh = mesh_makers.get_mesh(resn = 100, resz = 30);
+
+%% End 
+constituents = {'M2', 'M4'};
+tide = '';
+channel = 'portneuf';
+transect = '2009';
+
+resolution_n = 25;
+resolution_z = 1;
+
+ reg_weights = [1,1,1,1,1];  % [0,0,0,0,0], [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1][10,10,100,100,10]
+
+
+%% saving results
+model_name = get_model_name(channel,tide,transect,constituents,reg_weights);
+% model_name = strcat('CoarseGrid_HighReg_', model_name);
+
+
+
+%% plot mesh
+fig = figure;
+fig.Units = 'centimeters';
+fig.Position = [0.5, 0.5, 10, 7];
+mesh.plot()
+ylabel('Height [m +PWD]')
+xlabel('Location along cross-section [m]')
+legend('River Bed','Median Water Level', Location='southeast')
+%% Create tidal model (incl. regularisation)
+
+fit_new = true;
+if fit_new
+    flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg_weights, 1, model_name);
+else
+    flow = load_tidal_model(model_name);
+end
+
+
+
+%% Sort output
+
+[pars_U, pars_V, pars_W] = sort_flow_output(flow);
+
+%% read single tracks
+fit_new = true;
+if fit_new
+    flow_tracks = get_model_individual_track(V, mesh, B, xs, reg_weights, 0, model_name);
+else
+    flow_tracks = load_model_individual_track(model_name);
+end
+%% Time settings
+
+t0 = (datenum(V.time(1)))*86400;
+t_end = (datenum(V.time(end)))*86400;
+t_plot = (t0:300:t_end);
+
+%% plot results - changes in selected cell
+
+plot_ts_random_cells(mesh, pars_U, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name)
+
+%% plot results - mesh video
+
+% flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
+
+%% a, b to Amplitude and phase
+
+create_amplitude_bar_chart(constituents, pars_U, pars_V, pars_W,  1, model_name)
+
+%% CV MSE
+%Heavy function takes a long time to run!
+if include_CV
+    CV = CV_model_performance(flow, reg_weights, 1, model_name);
+end
+%% Fixed Point
+
+% time shift based on t = s/v not included
+[point_loc_x, point_loc_y, water_velocity_fixed] = compare_transect_to_fixed(channel, tide, transect, constituents, fit_new, V, mesh, xs, pars_U, pars_V, pars_W, t_plot, flow_tracks, 1, model_name);
+%% Create areal orientation figure
+
+plot_areal_image(V, xs, channel, point_loc_x, point_loc_y, 1, model_name)
+
+
+%% Fixed Point select
+
+[point_loc_x, point_loc_y, water_velocity_fixed] = compare_transect_to_fixed_simp(channel, tide, transect, fixed_point, constituents, fit_new, V, mesh, xs, pars_U, pars_V, pars_W, t_plot, flow_tracks, 1, model_name);
+
+
+
 
 %% Functions
 function model_name = get_model_name(channel,tide,transect,constituents,reg_weights)
@@ -27,19 +175,6 @@ function model_name = get_model_name(channel,tide,transect,constituents,reg_weig
     model_name = strcat(model_constituents, '_',model_reg, '_', name_base);
 end
 
-function [water_level_time, water_level_value] = load_water(channel)
-    load("Water_level\water_level_data.mat");
-    %Using the simple approach of selecting the closest measurement point manually
-    if isequal(channel,'Meghna')
-        water_level_time = water_level.Kaliganj.Date;
-        water_level_value = water_level.Kaliganj.WL_mPWD_;
-    elseif isequal(channel, 'Tetulia')
-        water_level_time = water_level.Tentulia.Date;
-        water_level_value = water_level.Tentulia.WL_mPWD_;
-    else
-        warning('Channel does not exist')
-    end
-end
 
 function reg_weights = load_opt_reg_weights(channel,transect,tide,constituents)
     if isequal(channel,'Tetulia') & isequal(transect,'T2')
@@ -76,61 +211,7 @@ function reg_weights = load_opt_reg_weights(channel,transect,tide,constituents)
     % fprintf('Lowest value is %.2f at row %d, column %d\n', minVal, row, col);
 end
 
-function [V, ef] = load_data(channel, tide, transect, constituents)
-    folder_data = strcat('Matlab_data\Transects\',tide,'\',channel, '_', tide,'_',transect,'.mat');
-    load(folder_data);
 
-    % convert to ADCP-object for adcp-tools
-    V=rdi.VMADCP(adcp);
-
-    [water_level_time, water_level_value] = load_water(channel);
-
-    % define Ensemble filter for the current ADCP-object
-    ef = EnsembleFilter(V); %include all points
-    %xs has been created based on the mesh above. Not only on the selected
-    %dataset
-
-    % Add water level data
-    V.water_level_object = VaryingWaterLevel(water_level_time, water_level_value);
-
-    % constituents = {'M4','M6'};%, 'M4'};
-    V.water_level_object.model = TidalScalarModel(constituents = constituents);
-    V.water_level_object.model.scalar_name = 'eta';
-    V.water_level_object.get_parameters();
-end
-
-function [mesh, bathy, xs] = mesh_maker(channel, transect, constituents, resolution_n, resolution_z)
-
-    % Read water levels
-    [water_level_time, water_level_value] = load_water(channel);
-
-    % load a selection of tracks. Tracks are only used to create the mesh
-    % These tracks are manallly selected and stored based on their location.
-    filename = strcat('Matlab_data\Transects\',channel, '_',transect, '.mat');
-    adcp_mesh = load(filename);
-    V_mesh = rdi.VMADCP(adcp_mesh.adcp);
-
-    % Add waterlevel
-    V_mesh.water_level_object = VaryingWaterLevel(water_level_time, water_level_value);
-    V_mesh.water_level_object.model = TidalScalarModel(constituents = constituents);
-    V_mesh.water_level_object.model.scalar_name = 'eta';
-    V_mesh.water_level_object.get_parameters();
-
-    ef_mesh = EnsembleFilter(V_mesh); %since data selection was done before by selecting relevant track all data will be included
-    xs = XSection(V_mesh, ef_mesh);
-
-    if isequal(channel,'Meghna') % Check is the direction is correct, (Un)comment if needed to change
-        xs.revert();
-    end
-    bathy = BathymetryScatteredPoints(V_mesh);
-    bathy.interpolator.span = 0.01;
-
-    mesh_maker = SigmaZetaMeshFromVMADCP(ef_mesh, xs, bathy, 'NoExpand', V_mesh);
-    mesh_maker.deltan = resolution_n;
-    mesh_maker.deltaz = resolution_z;
-
-    mesh = mesh_maker.get_mesh;
-end
 
 function flow = get_tidal_model(V, constituents, mesh, bathy, xs, ef, reg_weights, save_parameters, model_name)
 
@@ -159,12 +240,6 @@ function flow = get_tidal_model(V, constituents, mesh, bathy, xs, ef, reg_weight
     flow_solv.rotation = xs.angle;
 
     flow = flow_solv.get_solution();
-
-    if save_parameters
-        save_name = strcat("Matlab_data\Fitted_parameters\",model_name,'_pars.mat');
-        save(save_name, "flow");
-    end
-
 end
 
 function [pars_U, pars_V, pars_W] = sort_flow_output(flow)
@@ -303,10 +378,10 @@ function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flo
         [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, 'U');
         hold on
 
-        plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
+         plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
 
         hold on
-        scatter(time_single(:,1), flows_single_in_cell(:,1))
+         scatter(time_single(:,1), flows_single_in_cell(:,1))
 
         title(strcat("CellID = ",string(CellID)))
     end
@@ -1616,117 +1691,5 @@ function plot_areal_image(V, xs, channel, point_loc_x, point_loc_y, save_figure,
         saveas(gcf,fig_location)
     end
 end
-
-
-%% Select dataset
-tide = 'Neap';
-channel = 'Meghna';
-transect = 'T1';
-
-
-constituents = {'M2', 'M4'};%'M1','M3', ,'M4'' ,,'M4' 'M6'
-
-resolution_n = 25;
-resolution_z = 1;
-
-% reg_weights = [10,10,100,100,10];  % [0,0,0,0,0], [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1]
-
-reg_weights = load_opt_reg_weights(channel,transect,tide,constituents);
-
-
-fit_new = 1;
-% A. I thinkthis is the regularization finder
-include_CV = 0; %heavy function
-
-
-% select fixed point
-FP= 2;
-if isequal(channel,'Tetulia') & isequal(transect,'T2')
-    fixed_point = {'V2'};
-elseif isequal(channel,'Tetulia') & isequal(transect,'T3')
-    fixed_point = {'V1'};
-elseif isequal(channel,'Meghna') & FP == 1
-    fixed_point = {'V1'} ;
-elseif isequal(channel,'Meghna') & FP == 2
-    fixed_point = {'V3'} ;
-end
-
-
-%% saving results
-model_name = get_model_name(channel,tide,transect,constituents,reg_weights);
-% model_name = strcat('CoarseGrid_HighReg_', model_name);
-
-
-
-%% Read water level data
-% Read water levels
-[water_level_time, water_level_value] = load_water(channel);
-
-% Read adcp-data
-[V, ef] = load_data(channel, tide, transect, constituents);
-
-%% create mesh
-[mesh, bathy, xs] = mesh_maker(channel, transect, constituents, resolution_n, resolution_z);
-%% plot mesh
-fig = figure;
-fig.Units = 'centimeters';
-fig.Position = [0.5, 0.5, 10, 7];
-mesh.plot()
-ylabel('Height [m +PWD]')
-xlabel('Location along cross-section [m]')
-legend('River Bed','Median Water Level', Location='southeast')
-%% Create tidal model (incl. regularisation)
-if fit_new
-    flow = get_tidal_model(V, constituents, mesh, bathy, xs, ef, reg_weights, 1, model_name);
-else
-    flow = load_tidal_model(model_name);
-end
-
-%% Sort output
-
-[pars_U, pars_V, pars_W] = sort_flow_output(flow);
-
-%% read single tracks
-if fit_new
-    flow_tracks = get_model_individual_track(V, mesh, bathy, xs, reg_weights, 1, model_name);
-else
-    flow_tracks = load_model_individual_track(model_name);
-end
-%% Time settings
-
-t0 = (datenum(V.time(1)))*86400;
-t_end = (datenum(V.time(end)))*86400;
-t_plot = (t0:300:t_end);
-
-%% plot results - changes in selected cell
-
-plot_ts_random_cells(mesh, pars_U, t_plot, constituents, xs, V, channel, flow_tracks, 1, model_name)
-
-%% plot results - mesh video
-
-% flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
-
-%% a, b to Amplitude and phase
-
-create_amplitude_bar_chart(constituents, pars_U, pars_V, pars_W,  1, model_name)
-
-%% CV MSE
-%Heavy function takes a long time to run!
-if include_CV
-    CV = CV_model_performance(flow, reg_weights, 1, model_name);
-end
-%% Fixed Point
-
-% time shift based on t = s/v not included
-[point_loc_x, point_loc_y, water_velocity_fixed] = compare_transect_to_fixed(channel, tide, transect, constituents, fit_new, V, mesh, xs, pars_U, pars_V, pars_W, t_plot, flow_tracks, 1, model_name);
-%% Create areal orientation figure
-
-plot_areal_image(V, xs, channel, point_loc_x, point_loc_y, 1, model_name)
-
-
-%% Fixed Point select
-
-[point_loc_x, point_loc_y, water_velocity_fixed] = compare_transect_to_fixed_simp(channel, tide, transect, fixed_point, constituents, fit_new, V, mesh, xs, pars_U, pars_V, pars_W, t_plot, flow_tracks, 1, model_name);
-
 
 

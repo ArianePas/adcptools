@@ -26,7 +26,7 @@ addpath('./Donnees_validation'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
 dat = rdi.readDeployment('Quebec_0_0', './2009/ADCP 2009/Quebec_0');
 %% Load water level data
-load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
+load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
 
 %% waterlevel
@@ -40,7 +40,7 @@ water_level.get_parameters();
 %% Modify the following code to analyze the data
 
 V = rdi.VMADCP(dat);
-V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
+%  V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
 V.water_level_object = water_level;
 
