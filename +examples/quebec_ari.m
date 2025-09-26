@@ -24,9 +24,9 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec_0_0', './2009/ADCP 2009/Quebec_0');
+dat = rdi.readDeployment('20230606_001_Port_of_Quebec_0', 'C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_PaulE');
 %% Load water level data
-load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
+load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3300Portneuf2009_HNE_NMM_3min.mat")
 
 
 %% waterlevel
@@ -42,7 +42,7 @@ water_level.get_parameters();
 V = rdi.VMADCP(dat);
 %  V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
-V.water_level_object = water_level;
+% % V.water_level_object = water_level;  % return
 
 B = BathymetryScatteredPoints(V);
 
@@ -106,6 +106,8 @@ flow.plot_solution()
 
 %% Post-Processing - focus on decomposition of the solution
 addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
+addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\cartesian")))
+addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\plot")))
 tim = flow.solver.adcp.time;
 
 Tlim(1)= min(tim);
@@ -185,5 +187,38 @@ xlabel('reg pars')
 ylabel('generalization error')
 title('lambda vs scaled generalization error')
 
-%% trial
-plot_solution(flow,'sol_idx',1)
+%% trying to plot raw data
+
+    vel_pos={V.depth_cell_position};
+    vel_pos=cellfun(@(x) mean(x(:,:,:,3),3,'omitnan'), vel_pos,...
+        'UniformOutput', false);
+
+    vel_xy={V.water_velocity(CoordinateSystem.Earth)};
+    tim=V.time;
+
+    vel_sn = {nan(size(vel_xy{1}))};
+    vel_sn{1}(:,:,3) = vel_xy{1}(:,:,3);
+    vel_sn{1}(:,:,4) = vel_xy{1}(:,:,4);
+
+    R = [xs.direction_orthogonal(1), xs.direction_orthogonal(2); xs.direction(1),  xs.direction(2)];
+
+    for i = 1:size(vel_xy{1}(:,:,1),1)
+        for j = 1:size(vel_xy{1}(:,:,1),2)
+            velocity_U = vel_xy{1}(i,j,1);
+            velocity_V = vel_xy{1}(i,j,2);
+            vel_sn{1}(i,j,1) = R(1,1) * velocity_U + R(1,2) * velocity_V;
+            vel_sn{1}(i,j,2) = R(2,1) * velocity_U + R(2,2) * velocity_V;
+
+            % disp(['velocity_U: ', num2str(velocity_U), ' m/s']);
+            % disp(['velocity_V: ', num2str(velocity_V), ' m/s']);
+            % disp(['U vel_U_sn: ', num2str(vel_sn{1}(i,j,1)), ' m/s']);
+            % disp(['V vel_V_sn: ', num2str(vel_sn{1}(i,j,2)), ' m/s']);
+        end
+    end
+
+
+
+    %% stoopid code
+
+    
+

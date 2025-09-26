@@ -68,7 +68,7 @@ V.filters = Filter;
 
 mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
-mesh = mesh_makers.get_mesh(resn = 100, resz = 30);
+mesh = mesh_makers.get_mesh(resn = 15, resz = 7);
 
 %% End 
 constituents = {'M2', 'M4'};
@@ -126,7 +126,7 @@ t_plot = (t0:300:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, pars_U, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name)
+plot_ts_random_cells(mesh, pars_W, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name)
 
 %% plot results - mesh video
 
@@ -375,13 +375,13 @@ function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flo
 
         plot(datetime(t_plot/86400, 'ConvertFrom', 'datenum'), calc_vel_U);
 
-        [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, 'U');
+        [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, 'W');
         hold on
 
          plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
 
         hold on
-         scatter(time_single(:,1), flows_single_in_cell(:,1))
+         scatter(time_single(:,1), flows_single_in_cell(:,3))
 
         title(strcat("CellID = ",string(CellID)))
     end
