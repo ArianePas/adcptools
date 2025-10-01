@@ -840,14 +840,17 @@ classdef SigmaZetaMesh < Mesh & helpers.ArraySupport & matlab.mixin.Copyable
 
                 % Following are of length ncol
                 sur_idx = intersect(find((obj.domains >= 2)), find((obj.domains <= 4)));
-                bot_idx = find((obj.domains >= 6));
+                sur_idx2 = find(obj.domains == 9);
+                sur_idx = [sur_idx2',sur_idx'];
+                sur_idx = sort(sur_idx');
+                bot_idx = find((obj.domains >= 6)); %%excluded 9, to see if this solves the error
 
                 % Following could perhaps be sped up (only extr cells
                 % should be evaluated)
                 center_idx = obj.index(n, .5*ones(size(n))); % Could be sped up
                 fgood = isfinite(center_idx);
                 cols = obj.col_to_cell(center_idx(fgood)); % Columns
-
+                warning('pause')
                 cell_idx_extrapolated(extrb(fgood)) = bot_idx(cols(extrb(fgood)));
                 cell_idx_extrapolated(extrs(fgood)) = sur_idx(cols(extrs(fgood)));
             end

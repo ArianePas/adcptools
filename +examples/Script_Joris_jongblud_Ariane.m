@@ -130,7 +130,7 @@ plot_ts_random_cells(mesh, pars_W, t_plot, constituents, xs, V, channel, flow_tr
 
 %% plot results - mesh video
 
-% flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
+ flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
 
 %% a, b to Amplitude and phase
 
@@ -468,8 +468,8 @@ function [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(cel
 end
 
 function [velocity_prime, velocity_second, alfa] = rotate_sn2ps(velocity_U, velocity_V)
-    mean_vel_U = mean(velocity_U, "omitmissing");
-    mean_vel_V = mean(velocity_V, "omitmissing");
+    mean_vel_U = mean(velocity_U, "omitnan");
+    mean_vel_V = mean(velocity_V, "omitnan");
     alfa = atan2(mean_vel_V,mean_vel_U);
 
 
@@ -498,8 +498,8 @@ function flow_pattern_video(flow, mesh, constituents, t_plot,  save_video, model
 
     screenSize = get(0, 'ScreenSize');
     figure('Position', [1, 1, screenSize(3)-100, screenSize(4)-100]);
-    save_name = strcat("Matlab_data\Figures_models\Video_crosssection_primary\",model_name,"_flow_pattern");
-    video = VideoWriter(save_name, 'MPEG-4');
+%     save_name = strcat("Matlab_data\Figures_models\Video_crosssection_primary\",model_name,"_flow_pattern");
+    video = VideoWriter('C:\Users\arian\Documents\internship', 'MPEG-4');
     video.FrameRate = 5;  % Adjust frame rate as needed
     open(video);  % Open video file for writing
 
@@ -550,7 +550,7 @@ function flow_pattern_video(flow, mesh, constituents, t_plot,  save_video, model
         Fw_adjusted = velocity_W;
 
         % Resulting velocity average
-        average_sec_velocity = mean(sqrt(velocity_second.^2+velocity_W.^2),"omitmissing");
+        average_sec_velocity = mean(sqrt(velocity_second.^2+velocity_W.^2),"omitnan");
 
         % threshold = prctile(sqrt(velocity_second.^2+velocity_W.^2),95);
         threshold = inf;
@@ -666,24 +666,24 @@ function create_amplitude_bar_chart(constituents, pars_U, pars_V, pars_W, save_f
     subplot(3, 1, 1);
     plot(A_phi_U(:,col), '.')
     legend()
-    % bar(mean(A_phi_U(:,col),"omitmissing"));
+     bar(mean(A_phi_U(:,col),"omitnan"));
     title('Amplitudes U')
     xticklabels(constituents)
 
     subplot(3, 1, 2);
-    bar(mean(A_phi_V(:,col),"omitmissing"));
+    bar(mean(A_phi_V(:,col),"omitnan"));
     title('Amplitudes V')
     xticklabels(constituents)
 
     subplot(3, 1, 3);
-    bar(mean(A_phi_W(:,col),"omitmissing"));
+    bar(mean(A_phi_W(:,col),"omitnan"));
     title('Amplitudes W')
     xticklabels(constituents)
 
-    if save_figure
-        fig_location = strcat("Matlab_data\Figures_models\Constituent_amplitude\",model_name, "_ConstituentA.png");
-        saveas(gcf,fig_location)
-    end
+%     if save_figure
+%         fig_location = strcat("Matlab_data\Figures_models\Constituent_amplitude\",model_name, "_ConstituentA.png");
+%         saveas(gcf,fig_location)
+%     end
 end
 
 function CV = CV_model_performance(flow, reg_weights, save_MSE, model_name)
