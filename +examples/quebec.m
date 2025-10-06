@@ -21,7 +21,7 @@ addpath('./data'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec_0_0', './data/quebec');
+dat = rdi.readDeployment('Quebec City Old Port - Vieux Port_02','C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_Andara');
 %% Load water level data
 load('C:\Users\jongb013\Documents\PHD\5-Projects\Ariane\data\Donnees_validation\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
