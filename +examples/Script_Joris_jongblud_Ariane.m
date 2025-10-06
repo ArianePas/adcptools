@@ -10,7 +10,6 @@ load('portneuf2009.mat')
 RF = 'C:\Users\arian\Documents\internship'; %RootFolder
 addpath(genpath('C:\Users\arian\Documents\internship\git\adcptools')); %path to ADCPTools of Bart Vermeulen
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
-
 %% Quick documentation walkthrough - comment out
 
 %open_adcptools_documentation()
@@ -68,7 +67,41 @@ V.filters = Filter;
 
 mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
-mesh = mesh_makers.get_mesh(resn = 15, resz = 7);
+% input preferred mresh size
+
+hver = 2.5; % depth mesh cell in m
+hhor = 15; %width mesh cell in m
+
+%% select max & min in that order
+
+newplot
+plot(V.horizontal_position(1,:))
+[~, x] = ginput;
+maxx = x(1,1);
+minx = x(2,1);
+
+newplot
+plot(V.horizontal_position(2,:));
+[~, y] = ginput;
+maxy = y(1,1);
+miny = y(2,1);
+
+%% calculations
+
+lengthriv = sqrt((maxy-miny)^2+(maxx-minx)^2); 
+
+n = round(lengthriv/hhor);
+acthor = lengthriv/n;
+
+depthriv = mean((max(V.bt_vertical_range,[], 'omitnan')));
+
+z = round(depthriv/hver);
+actver = depthriv/z;
+
+fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+fprintf('Used vertical mesh size is: %.2f\n', actver);
+
+mesh = mesh_makers.get_mesh(resn = n, resz = z);
 
 %% End 
 constituents = {'M2', 'M4'};
@@ -76,8 +109,7 @@ tide = '';
 channel = 'portneuf';
 transect = '2009';
 
-resolution_n = 25;
-resolution_z = 1;
+
 
  reg_weights = [1,1,1,1,1];  % [0,0,0,0,0], [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1][10,10,100,100,10]
 
@@ -121,12 +153,12 @@ end
 %% Time settings
 
 t0 = (datenum(V.time(1)))*86400;
-t_end = (datenum(V.time(end)))*86400;
+t_end = (datenum(V.time(end)))*86400;  
 t_plot = (t0:300:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, pars_W, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name)
+plot_ts_random_cells(mesh, 'W', 3, pars_W, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 31,100,183,277,405,517,650,736);
 
 %% plot results - mesh video
 
@@ -308,7 +340,7 @@ function flow_tracks = get_model_individual_track(V, mesh, bathy, xs, reg_weight
     end
 end
 
-function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flow_tracks, save_figure, model_name)
+function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, channel, flow_tracks, save_figure, model_name,a,b,c, d, e, f, g, h)
     % Tidal components' periods (in hours)
     M2_period = 12.4206012;          % Semi-diurnal component
     M4_period = 6.210300601;         % M4 (fourth diurnal component)
@@ -329,7 +361,7 @@ function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flo
     CellID = 157 ; %find(mesh.col_to_cell == x_cell & mesh.row_to_cell == y_cell);
     % random_cells = sort(randperm(mesh.ncells, 8), "ascend");
     random_cells = round(linspace(20,mesh.ncells-20,8));
-
+   
     for i = 1:length(random_cells)
         cell = random_cells(i);
         if mesh.domains(cell,1) == 4 || mesh.domains(cell,1) == 3 || mesh.domains(cell,1) == 2
@@ -337,6 +369,8 @@ function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flo
         end
         random_cells(i) = cell;
     end
+
+    random_cells = [a,b,c, d, e, f, g, h];
 
     screenSize = get(0, 'ScreenSize');
     figure('Position', [1, 1, screenSize(3)-100, screenSize(4)-100]);
@@ -375,13 +409,13 @@ function plot_ts_random_cells(mesh,pars_U,t_plot,constituents,xs,V, channel, flo
 
         plot(datetime(t_plot/86400, 'ConvertFrom', 'datenum'), calc_vel_U);
 
-        [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, 'W');
+        [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, lett);
         hold on
 
          plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
 
         hold on
-         scatter(time_single(:,1), flows_single_in_cell(:,3))
+         scatter(time_single(:,1), flows_single_in_cell(:,nr))
 
         title(strcat("CellID = ",string(CellID)))
     end

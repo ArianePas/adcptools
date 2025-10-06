@@ -24,9 +24,9 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('20230606_001_Port_of_Quebec_0', 'C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_PaulE');
+dat = rdi.readDeployment('Quebec City Old Port - Vieux Port_02','C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_Andara');
 %% Load water level data
-load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3300Portneuf2009_HNE_NMM_3min.mat")
+load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
 
 %% waterlevel
@@ -40,9 +40,9 @@ water_level.get_parameters();
 %% Modify the following code to analyze the data
 
 V = rdi.VMADCP(dat);
-%  V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
+% V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
-% % V.water_level_object = water_level;  % return
+% V.water_level_object = water_level;  % return
 
 B = BathymetryScatteredPoints(V);
 
@@ -87,7 +87,7 @@ flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 
 
 
 % Bulk regularization parameter % possibly modify
-lc = 0.0;
+lc = 1.0;
 flow_regs(1).weight =  lc;
 flow_regs(2).weight =  lc;
 flow_regs(3).weight =  lc;

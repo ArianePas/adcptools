@@ -838,12 +838,14 @@ classdef SigmaZetaMesh < Mesh & helpers.ArraySupport & matlab.mixin.Copyable
                 extrb = extr & bot;
                 extrs = extr & sur;
 
+                disp('Adjusted code of Ariane is used')
                 % Following are of length ncol
                 sur_idx = intersect(find((obj.domains >= 2)), find((obj.domains <= 4)));
-                sur_idx2 = find(obj.domains == 9);
-                sur_idx = [sur_idx2',sur_idx'];
-                sur_idx = sort(sur_idx');
-                bot_idx = find((obj.domains >= 6)); %%excluded 9, to see if this solves the error
+                % add 9 domain to sur_idx
+                sur_idx2 = find(obj.domains == 9); %% find domains = 9
+                sur_idx = [sur_idx2',sur_idx']; %% add the 9 domain cells to sur_idx
+                sur_idx = sort(sur_idx'); %% sort indx nrs so they are increasing
+                bot_idx = find((obj.domains >= 6)); 
 
                 % Following could perhaps be sped up (only extr cells
                 % should be evaluated)
