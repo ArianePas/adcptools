@@ -24,9 +24,9 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec City Old Port - Vieux Port_02','C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_Andara');
+dat = rdi.readDeployment('Quebec_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Quebec_0');
 %% Load water level data
-load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
+load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
 
 %% waterlevel
@@ -42,7 +42,7 @@ water_level.get_parameters();
 V = rdi.VMADCP(dat);
 % V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
-% V.water_level_object = water_level;  % return
+ V.water_level_object = water_level;  % return
 
 B = BathymetryScatteredPoints(V);
 
@@ -64,9 +64,43 @@ V.filters = Filter;
 
 %% Mesh for plotting
 
-mesh_maker = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
+mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
-mesh = mesh_maker.get_mesh(resn = 50, resz = 15);
+% input preferred mresh size
+
+hver = 10; % depth mesh cell in m
+hhor = 100; %width mesh cell in m
+
+%% select max & min in that order
+
+newplot
+plot(V.horizontal_position(1,:))
+[~, x] = ginput;
+maxx = x(1,1);
+minx = x(2,1);
+
+newplot
+plot(V.horizontal_position(2,:));
+[~, y] = ginput;
+maxy = y(1,1);
+miny = y(2,1);
+
+%% calculations
+
+lengthriv = sqrt((maxy-miny)^2+(maxx-minx)^2); 
+
+n = round(lengthriv/hhor);
+acthor = lengthriv/n;
+
+depthriv = mean((max(V.bt_vertical_range,[], 'omitnan')));
+
+z = round(depthriv/hver);
+actver = depthriv/z;
+
+fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+fprintf('Used vertical mesh size is: %.2f\n', actver);
+
+mesh = mesh_makers.get_mesh(resn = n, resz = z);
 
 %% Model
 opts = SolverOptions(extrapolate_vert = 0, lat_weight_factor = 10); % possibly modify
@@ -77,9 +111,9 @@ flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empiri
 flow_model.constituents = constituents;
 
 %or TaylorVelocityModel
-flow_model.n_order = [1 1 1];
-flow_model.s_order = [1 1 1];
-flow_model.sigma_order = [1 1 1];
+flow_model.s_order = [1 1 1]; %u
+flow_model.n_order = [1 1 1]; %v
+flow_model.sigma_order = [1 1 1]; %sja
 
 
 %Solver options and regularization
@@ -87,7 +121,7 @@ flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 
 
 
 % Bulk regularization parameter % possibly modify
-lc = 1.0;
+lc = 10;
 flow_regs(1).weight =  lc;
 flow_regs(2).weight =  lc;
 flow_regs(3).weight =  lc;
@@ -145,9 +179,9 @@ D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
 % Plot some variables
 name = 'flow';
 sav = 0;
-animate_solution(u{1}, X, name, sav)
+animate_solution(u{2}, X, name, sav)
 
-[u_decomp, u_avg] = D.decompose_function(u{1}); % U-Flow
+[u_decomp, u_avg] = D.decompose_function(u{2}); % U-Flow
 
 D.plot_components(u_decomp, 'velmap')
 D.plot_components(u_avg, 'velmap')

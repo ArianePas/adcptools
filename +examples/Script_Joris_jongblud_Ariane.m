@@ -26,9 +26,9 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Portneuf_0_0', './2009/ADCP 2009/Portneuf_0');
+dat = rdi.readDeployment('Lauzon_0_0', './2009/ADCP 2009/Lauzon_0');
 %% Load water level data
-load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3300Portneuf2009_HNE_NMM_3min.mat')
+load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
 
 %% waterlevel
@@ -48,6 +48,7 @@ V.water_level_object = water_level;
 B = BathymetryScatteredPoints(V);
 
 %Bfilt = find(B.known(2,:)>0);
+B.known = B.known(:,(B.known(3,:)<-0.01));
 
 B.interpolator.span = .001;
 figure;
@@ -70,7 +71,7 @@ mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 % input preferred mresh size
 
 hver = 2.5; % depth mesh cell in m
-hhor = 15; %width mesh cell in m
+hhor = 25; %width mesh cell in m
 
 %% select max & min in that order
 
@@ -158,7 +159,7 @@ t_plot = (t0:300:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, 'W', 3, pars_W, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 31,100,183,277,405,517,650,736);
+plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 15,56,102,173,242,302,401,438);
 
 %% plot results - mesh video
 

@@ -838,7 +838,7 @@ classdef SigmaZetaMesh < Mesh & helpers.ArraySupport & matlab.mixin.Copyable
                 extrb = extr & bot;
                 extrs = extr & sur;
 
-                disp('Adjusted code of Ariane is used')
+                disp('Adjusted code Ariane is used')
                 % Following are of length ncol
                 sur_idx = intersect(find((obj.domains >= 2)), find((obj.domains <= 4)));
                 % add 9 domain to sur_idx
@@ -852,7 +852,6 @@ classdef SigmaZetaMesh < Mesh & helpers.ArraySupport & matlab.mixin.Copyable
                 center_idx = obj.index(n, .5*ones(size(n))); % Could be sped up
                 fgood = isfinite(center_idx);
                 cols = obj.col_to_cell(center_idx(fgood)); % Columns
-                warning('pause')
                 cell_idx_extrapolated(extrb(fgood)) = bot_idx(cols(extrb(fgood)));
                 cell_idx_extrapolated(extrs(fgood)) = sur_idx(cols(extrs(fgood)));
             end

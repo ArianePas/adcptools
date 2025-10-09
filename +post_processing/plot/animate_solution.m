@@ -12,7 +12,7 @@ cm=colormap(gca, helpers.cmaps("velmap"));
 clim([-amax, amax])
 ylim([min(X.Z, [], 'all'), max(X.Z, [], 'all')])
 set(gca, 'XDir','reverse') % Very important
-for tim = 1:1:60 %chamged from nqt to 60 for trial by Ariane
+for tim = 1:1:100 %chamged from nqt to 60 for trial by Ariane
     frame = getframe(fi);
     im = frame2im(frame);
     ha.YData = squeeze(X.Z(tim,:,:))';
@@ -28,6 +28,6 @@ for tim = 1:1:60 %chamged from nqt to 60 for trial by Ariane
             imwrite(imind, cm, filename, 'gif', 'WriteMode', 'append');
         end
     end
-    pause(.2)
+    pause(.5)
 end
 end

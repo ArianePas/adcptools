@@ -9,6 +9,7 @@ addpath(genpath(strcat(RF,'Tools\adcptools'))); %path to ADCPTools
 %% Quick documentation walkthrough - comment out
 
 %open_adcptools_documentation()
+save('Quebec', 'dat')
 
 %% Constituents
 
@@ -21,9 +22,9 @@ addpath('./data'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec City Old Port - Vieux Port_02','C:\Users\arian\Documents\internship\Donnees_validation\2023\SWOT ADCP Measurements\SWOT Measurements\20230606_VieuxQuebec_Andara');
+dat = rdi.readDeployment('Quebec_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Quebec_0');
 %% Load water level data
-load('C:\Users\jongb013\Documents\PHD\5-Projects\Ariane\data\Donnees_validation\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
+load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
 
 %% waterlevel
@@ -37,9 +38,9 @@ water_level.get_parameters();
 %% Modify the following code to analyze the data
 
 V = rdi.VMADCP(dat);
-V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
+% V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
-V.water_level_object = water_level;
+ V.water_level_object = water_level;
 
 B = BathymetryScatteredPoints(V);
 
@@ -64,7 +65,7 @@ V.filters = Filter;
 mesh_maker = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
 mesh = mesh_maker.get_mesh(resn = 50, resz = 15);
-
+mesh.plot;
 %% Model
 opts = SolverOptions(extrapolate_vert = 0, lat_weight_factor = 10); % possibly modify
 %opts.force_zero = [1 1 1 1 1];
@@ -74,9 +75,9 @@ flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empiri
 flow_model.constituents = constituents;
 
 %or TaylorVelocityModel
-flow_model.n_order = [1 1 1];
-flow_model.s_order = [1 1 1];
-flow_model.sigma_order = [1 1 1];
+flow_model.n_order = [1 0 0];
+flow_model.s_order = [0 1 0];
+flow_model.sigma_order = [0 0 1];
 
 
 %Solver options and regularization
@@ -84,7 +85,7 @@ flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 
 
 
 % Bulk regularization parameter % possibly modify
-lc = 0.0;
+lc = 10.0;
 flow_regs(1).weight =  lc;
 flow_regs(2).weight =  lc;
 flow_regs(3).weight =  lc;
