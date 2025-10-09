@@ -1,22 +1,24 @@
 % Script to play for Ariane
 %found it!!
+clear all
+clc
 
 %% Path management
-RF = 'C:\Users\jongb013\Documents\PHD\2-Programming\'; %RootFolder
-addpath(genpath(strcat(RF,'Tools\adcptools'))); %path to ADCPTools
+RF = 'C:\Users\arian\Documents\internship'; %RootFolder
+addpath(genpath(strcat(RF,'/git/adcptools'))); %path to ADCPTools
+addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processing"))
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 
 %% Quick documentation walkthrough - comment out
 
 %open_adcptools_documentation()
-save('Quebec', 'dat')
 
 %% Constituents
 
 constituents = {'M2', 'M4'};
 
 %% Loading in the data
-addpath('./data'); %path to data
+addpath('./Donnees_validation'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
 %dat = rdi.readDeployment('Lauzon_0_0', './data/Lauzon_0');
 
@@ -40,7 +42,7 @@ water_level.get_parameters();
 V = rdi.VMADCP(dat);
 % V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
- V.water_level_object = water_level;
+ V.water_level_object = water_level;  % return
 
 B = BathymetryScatteredPoints(V);
 
@@ -62,10 +64,44 @@ V.filters = Filter;
 
 %% Mesh for plotting
 
-mesh_maker = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
+mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
-mesh = mesh_maker.get_mesh(resn = 50, resz = 15);
-mesh.plot;
+% input preferred mresh size
+
+hver = 10; % depth mesh cell in m
+hhor = 100; %width mesh cell in m
+
+%% select max & min in that order
+
+newplot
+plot(V.horizontal_position(1,:))
+[~, x] = ginput;
+maxx = x(1,1);
+minx = x(2,1);
+
+newplot
+plot(V.horizontal_position(2,:));
+[~, y] = ginput;
+maxy = y(1,1);
+miny = y(2,1);
+
+%% calculations
+
+lengthriv = sqrt((maxy-miny)^2+(maxx-minx)^2); 
+
+n = round(lengthriv/hhor);
+acthor = lengthriv/n;
+
+depthriv = mean((max(V.bt_vertical_range,[], 'omitnan')));
+
+z = round(depthriv/hver);
+actver = depthriv/z;
+
+fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+fprintf('Used vertical mesh size is: %.2f\n', actver);
+
+mesh = mesh_makers.get_mesh(resn = n, resz = z);
+
 %% Model
 opts = SolverOptions(extrapolate_vert = 0, lat_weight_factor = 10); % possibly modify
 %opts.force_zero = [1 1 1 1 1];
@@ -75,9 +111,9 @@ flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empiri
 flow_model.constituents = constituents;
 
 %or TaylorVelocityModel
-flow_model.n_order = [1 0 0];
-flow_model.s_order = [0 1 0];
-flow_model.sigma_order = [0 0 1];
+flow_model.s_order = [1 1 1]; %u
+flow_model.n_order = [1 1 1]; %v
+flow_model.sigma_order = [1 1 1]; %sja
 
 
 %Solver options and regularization
@@ -85,7 +121,7 @@ flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 
 
 
 % Bulk regularization parameter % possibly modify
-lc = 10.0;
+lc = 10;
 flow_regs(1).weight =  lc;
 flow_regs(2).weight =  lc;
 flow_regs(3).weight =  lc;
@@ -103,7 +139,9 @@ flow = flow_solv.get_solution(); % possibly modify
 flow.plot_solution()
 
 %% Post-Processing - focus on decomposition of the solution
-addpath(genpath(strcat(RF,'Tools\adcptools\post_processing')))
+addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
+addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\cartesian")))
+addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\plot")))
 tim = flow.solver.adcp.time;
 
 Tlim(1)= min(tim);
@@ -141,9 +179,9 @@ D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
 % Plot some variables
 name = 'flow';
 sav = 0;
-animate_solution(u{1}, X, name, sav)
+animate_solution(u{2}, X, name, sav)
 
-[u_decomp, u_avg] = D.decompose_function(u{1}); % U-Flow
+[u_decomp, u_avg] = D.decompose_function(u{2}); % U-Flow
 
 D.plot_components(u_decomp, 'velmap')
 D.plot_components(u_avg, 'velmap')
@@ -182,3 +220,39 @@ semilogx(reg_pars_plot', [CV{:,1}])
 xlabel('reg pars')
 ylabel('generalization error')
 title('lambda vs scaled generalization error')
+
+%% trying to plot raw data
+
+    vel_pos={V.depth_cell_position};
+    vel_pos=cellfun(@(x) mean(x(:,:,:,3),3,'omitnan'), vel_pos,...
+        'UniformOutput', false);
+
+    vel_xy={V.water_velocity(CoordinateSystem.Earth)};
+    tim=V.time;
+
+    vel_sn = {nan(size(vel_xy{1}))};
+    vel_sn{1}(:,:,3) = vel_xy{1}(:,:,3);
+    vel_sn{1}(:,:,4) = vel_xy{1}(:,:,4);
+
+    R = [xs.direction_orthogonal(1), xs.direction_orthogonal(2); xs.direction(1),  xs.direction(2)];
+
+    for i = 1:size(vel_xy{1}(:,:,1),1)
+        for j = 1:size(vel_xy{1}(:,:,1),2)
+            velocity_U = vel_xy{1}(i,j,1);
+            velocity_V = vel_xy{1}(i,j,2);
+            vel_sn{1}(i,j,1) = R(1,1) * velocity_U + R(1,2) * velocity_V;
+            vel_sn{1}(i,j,2) = R(2,1) * velocity_U + R(2,2) * velocity_V;
+
+            % disp(['velocity_U: ', num2str(velocity_U), ' m/s']);
+            % disp(['velocity_V: ', num2str(velocity_V), ' m/s']);
+            % disp(['U vel_U_sn: ', num2str(vel_sn{1}(i,j,1)), ' m/s']);
+            % disp(['V vel_V_sn: ', num2str(vel_sn{1}(i,j,2)), ' m/s']);
+        end
+    end
+
+
+
+    %% stoopid code
+
+    
+
