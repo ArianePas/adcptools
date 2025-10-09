@@ -91,44 +91,6 @@ classdef SolverOptions < handle
             for ia = 1:2:nargin
                 obj.(varargin{ia}) = varargin{ia+1};
             end
-
-            % prepare generalization error analysis
-            for i = 1:5
-                ymax = helpers.symlog(obj.max_reg_pars(i), obj.res_near_zero(i));
-                ymin = helpers.symlog(obj.min_reg_pars(i), obj.res_near_zero(i));
-                obj.reg_pars_sens{i} = helpers.symexp(linspace(ymin, ymax, obj.reg_iter(i)), obj.res_near_zero(i))';
-            end
-
-        end
-
-        function reg_pars_sens_vec = vectorize_reg_pars(obj)
-            if strcmp(obj.reg_vary, 'coupled')
-                L = obj.reg_pars_sens(1, [1,3]); % Only vary two reg. parameters
-                n = length(L);
-                [L{:}] = ndgrid(L{end:-1:1});
-                L = cat(n+1,L{:});
-                L = fliplr(reshape(L,[],n));
-                RP = [L(:, 1), L(:,1), L(:,2), L(:,2), L(:,1)]; % Coupling of parameters
-            elseif strcmp(obj.reg_vary, 'full')
-                L = obj.reg_pars_sens; % Vary all reg. parameters
-                n = length(L);
-                [L{:}] = ndgrid(L{end:-1:1});
-                L = cat(n+1,L{:});
-                RP = fliplr(reshape(L,[],n));
-            else
-                error('Invalid reg_vary option')
-            end
-
-            for i = 1:size(RP,2)
-                RP(:,i) = obj.reg_relative_weights(i);
-                if obj.force_zero(i)    
-                    RP(:,i) = 0;
-                end
-            end
-
-
-            reg_pars_sens_vec = RP;
         end
     end
 end
-

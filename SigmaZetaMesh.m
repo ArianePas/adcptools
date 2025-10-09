@@ -839,9 +839,15 @@ classdef SigmaZetaMesh < Mesh & helpers.ArraySupport & matlab.mixin.Copyable
                 extrs = extr & sur;
 
                 % Following are of length ncol
-                sur_idx = intersect(find((obj.domains >= 2)), find((obj.domains <= 4)));
+                sur_idx = union(intersect(find((obj.domains >= 2)), find((obj.domains <= 4))), find(obj.domains == 9));
                 bot_idx = find((obj.domains >= 6));
 
+                deg_idx = find(obj.domains == 9); %% find domains = 9 - degenerate cells
+
+                % sur_idx2 = find(obj.domains == 9); %% find domains = 9
+                % sur_idx = [sur_idx2',sur_idx']; %% add the 9 domain cells to sur_idx
+                % sur_idx = sort(sur_idx'); %% sort indx nrs so they are increasing
+                % bot_idx = find((obj.domains >= 6)); 
                 % Following could perhaps be sped up (only extr cells
                 % should be evaluated)
                 center_idx = obj.index(n, .5*ones(size(n))); % Could be sped up

@@ -7,12 +7,12 @@ levels = linspace(-amax, amax, ncolor);
 [~,ha]=contourf(squeeze(X.Y(1,:,:))', squeeze(X.Z(1,:,:))',...
     squeeze(F(1,:,:))' , levels, "LineColor",'none');
 colorbar;
-title("Nieuwe Waterweg: Flow")
+title(name)
 cm=colormap(gca, helpers.cmaps("velmap"));
 clim([-amax, amax])
 ylim([min(X.Z, [], 'all'), max(X.Z, [], 'all')])
 set(gca, 'XDir','reverse') % Very important
-for tim = 1:1:nqt
+for tim = 1:1:size(F,1)
     frame = getframe(fi);
     im = frame2im(frame);
     ha.YData = squeeze(X.Z(tim,:,:))';

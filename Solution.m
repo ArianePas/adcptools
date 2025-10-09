@@ -273,7 +273,66 @@ classdef Solution < handle & helpers.ArraySupport
             end
         end
 
-        function CV = cross_validate_single(obj, reg_pars_mat)
+
+
+        function CV = cross_validate_0D(obj)
+            % simple cross-validation of the solution obj.p.
+            CV = obj.cross_validate([obj.solver.regularization.weight]);
+        end
+
+        function CV = cross_validate_1D(obj, min, max, N)
+            % 1D analysis: scalar min, max, N.
+            %reg_pars_mat = reg_pars_symlog(obj, min, max)
+            rp  = reg_pars_symlog(obj, min, max, N);
+            reg_pars_mat = repmat(rp, 1, 5);
+            CV = obj.cross_validate(reg_pars_mat);
+
+            figure;
+            plot(rp, [CV{:,1}])
+            xlabel('reg pars')
+            ylabel('generalization error')
+            title('lambda vs scaled generalization error')
+        end
+
+        function CV = cross_validate_2D(obj, min, max, N)
+            % 2D analysis: two-element inputs min, max, N. (i.e. min =
+            % [0,0])
+            reg_pars_cont = obj.reg_pars_symlog(min(1), max(1), N(1));
+            reg_pars_smooth = obj.reg_pars_symlog(min(2), max(2), N(2));
+
+            [rpc, rps] = meshgrid(reg_pars_cont, reg_pars_smooth);
+
+            reg_pars = helpers.vecs2mat_full(reg_pars_cont, reg_pars_smooth);
+            
+            % paste in because of ordering of constraints.
+            reg_pars_mat = [reg_pars(:,1), reg_pars(:,1), reg_pars(:,2), reg_pars(:,2), reg_pars(:,1)];
+            
+            CV = obj.cross_validate(reg_pars_mat);
+
+            figure;
+            % make use of the ordering of the constraints: first continuity
+            
+            contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, N(2), N(1)), 100)
+            colorbar
+            % colormap()
+            xlabel('cont (symlog10)')
+            ylabel('smoothness (symlog10)')
+            title('2D cross-validation')
+            
+
+
+        end
+
+        
+
+
+    end
+
+    methods(Access=protected)
+
+
+
+        function CV = cross_validate(obj, reg_pars_mat)
             % reg_pars_mat is a matrix of size nreg x 5, with the 5 known
             % regularization constraints.
 
@@ -318,14 +377,10 @@ classdef Solution < handle & helpers.ArraySupport
                 CV{rp, 2} = mean(E{rp,2}); % Ensemble average
             end
         end
-    end
-
-    methods(Access=protected)
-
 
         function training_idx = split_dataset(obj)
             %ci = vertcat(obj.cell_idx{:});
-            ci =obj.cell_idx;
+            ci = obj.cell_idx;
             training_idx = ones(size(ci));
 
             if strcmp(obj.opts.cv_mode, 'none')
@@ -339,9 +394,48 @@ classdef Solution < handle & helpers.ArraySupport
                 for occ = 1:length(oc)
                     training_idx(ci == oc(occ)) = 0;
                 end
+            elseif strcmp(obj.opts.cv_mode, 'kfold') % Disjoint partitions (in contrast to 'random')
+
             elseif strcmp(obj.opts.cv_mode, 'omit_time') % to be implemented
             end
         end
+
+        function rp = reg_pars_symlog(obj, min, max, N)%, res_near_zero = 1.0)
+            %Variation upon logspace.
+            ymin = helpers.symlog(min);
+            ymax = helpers.symlog(max);
+            rp = helpers.symexp(linspace(ymin, ymax, N))';
+        end
+
+
+        function reg_pars_sens_vec = vectorize_reg_pars(obj, cont, smooth)
+            if strcmp(obj.opts.reg_vary, 'coupled')
+                L = obj.reg_pars_sens(1, [1,3]); % Only vary two reg. parameters
+                n = length(L);
+                [L{:}] = ndgrid(L{end:-1:1});
+                L = cat(n+1,L{:});
+                L = fliplr(reshape(L,[],n));
+                RP = [L(:, 1), L(:,1), L(:,2), L(:,2), L(:,1)]; % Coupling of parameters
+            elseif strcmp(obj.reg_vary, 'full')
+                error('Full analysis is not supported. Change opts.reg_vary to coupled.')
+                L = obj.reg_pars_sens; % Vary all reg. parameters
+                n = length(L);
+                [L{:}] = ndgrid(L{end:-1:1});
+                L = cat(n+1,L{:});
+                RP = fliplr(reshape(L,[],n));
+            else
+                error('Invalid reg_vary option')
+            end
+
+            for i = 1:size(RP,2)
+                RP(:,i) = obj.reg_relative_weights(i);
+                if obj.force_zero(i)
+                    RP(:,i) = 0;
+                end
+            end
+            reg_pars_sens_vec = RP;
+        end
+
 
 
         function [A, rhs, L] = assemble_single(obj, M, b, Mp, regp)
@@ -358,9 +452,20 @@ classdef Solution < handle & helpers.ArraySupport
             p = obj.solve_single(A, rhs, L); % Matrix of solutions (columns) belonging to regularization parameters regP (rows)
         end
 
+        function p = assemble_solve_single_guess(obj, M, b, Mp, regp, p0)
+            % Solve system of eqs
+            [A, rhs, L] = assemble_single(obj, M, b, Mp, regp);
+            p = obj.solve_single_guess(A, rhs, L, p0); % Matrix of solutions (columns) belonging to regularization parameters regP (rows)
+        end
+
         function p = solve_single(obj, A, rhs, L)
             % Solve system of eqs
             [p, ~, ~, ~] = pcg(A, rhs, obj.opts.pcg_tol, obj.opts.pcg_iter, L, L'); % Matrix of solutions (columns) belonging to regularization parameters regP (rows)
+        end
+
+        function p = solve_single_guess(obj, A, rhs, L, p0)
+            % Solve system of eqs
+            [p, ~, ~, ~] = pcg(A, rhs, obj.opts.pcg_tol, obj.opts.pcg_iter, L, L', p0); % Matrix of solutions (columns) belonging to regularization parameters regP (rows)
         end
 
         function rhs = b2rhs(obj, M, b, regp)
