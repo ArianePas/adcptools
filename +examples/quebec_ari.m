@@ -24,7 +24,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Quebec_0');
+dat = rdi.readDeployment('Lauzon_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Lauzon_0');
 %% Load water level data
 load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
@@ -68,18 +68,18 @@ mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
 % input preferred mresh size
 
-hver = 10; % depth mesh cell in m
-hhor = 100; %width mesh cell in m
+hver = 5; % depth mesh cell in m
+hhor = 25; %width mesh cell in m
 
 %% select max & min in that order
 
-newplot
+figure
 plot(V.horizontal_position(1,:))
 [~, x] = ginput;
 maxx = x(1,1);
 minx = x(2,1);
 
-newplot
+
 plot(V.horizontal_position(2,:));
 [~, y] = ginput;
 maxy = y(1,1);
@@ -90,6 +90,7 @@ miny = y(2,1);
 lengthriv = sqrt((maxy-miny)^2+(maxx-minx)^2); 
 
 n = round(lengthriv/hhor);
+
 acthor = lengthriv/n;
 
 depthriv = mean((max(V.bt_vertical_range,[], 'omitnan')));
@@ -121,7 +122,7 @@ flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 
 
 
 % Bulk regularization parameter % possibly modify
-lc = 10;
+lc = 0.1;
 flow_regs(1).weight =  lc;
 flow_regs(2).weight =  lc;
 flow_regs(3).weight =  lc;
@@ -129,14 +130,22 @@ flow_regs(4).weight =  lc;
 flow_regs(5).weight =  lc;
 
 
+
 % Solve for the flow
 flow_solv = LocationBasedVelocitySolver(mesh, B, xs, ef, flow_model, opts, 'NoExpand', V, flow_regs); 
-flow_solv.rotation = xs.angle;
+flow_solv(1).rotation = xs.angle;
 flow = flow_solv.get_solution(); % possibly modify
 %figure
 %spy(flow.M)
 % Plot the state vector
 flow.plot_solution()
+
+%%
+%     err = cross_validate_0D(flow);
+
+    cross_validate_1D(flow, 0, 1, 10)
+%     cross_validate_2D(flow, [0,0], [1,1], [4,4])
+    
 
 %% Post-Processing - focus on decomposition of the solution
 addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
@@ -177,8 +186,8 @@ X.Z = Zb + X.Sig.*H;
 D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
 
 % Plot some variables
-name = 'flow';
-sav = 0;
+name = 'flow550_01reg.gif';
+sav = 1;
 animate_solution(u{2}, X, name, sav)
 
 [u_decomp, u_avg] = D.decompose_function(u{2}); % U-Flow

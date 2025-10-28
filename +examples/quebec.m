@@ -75,9 +75,9 @@ flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empiri
 flow_model.constituents = constituents;
 
 %or TaylorVelocityModel
-flow_model.n_order = [1 0 0];
-flow_model.s_order = [0 1 0];
-flow_model.sigma_order = [0 0 1];
+flow_model.n_order = [1 1 1];
+flow_model.s_order = [1 1 1];
+flow_model.sigma_order = [1 1 1];
 
 
 %Solver options and regularization
@@ -170,7 +170,7 @@ reg_pars_mat = repmat([0, logspace(-5,3,2)]', 1, 5);
 
 flow.opts.training_perc = .66;
 flow.opts.cv_iter = 1; %1-fold cross validation (See Brunton & Kutz)
-CV = flow.cross_validate_single(reg_pars_mat); % todo: wrapper for 2D sensitivity like figs from ADCPpaper
+CV = cross_validate_0D(flow); % todo: wrapper for 2D sensitivity like figs from ADCPpaper
 
 
 reg_pars_plot = reg_pars_mat(:,1);

@@ -8,8 +8,9 @@ levels = linspace(-amax, amax, ncolor);
     squeeze(F(1,:,:))' , levels, "LineColor",'none');
 colorbar;
 title(name)
-cm=colormap(gca, helpers.cmaps("velmap"));
-clim([-amax, amax])
+cm=colormap("jet");
+% clim([-amax, amax])
+clim([-1, 0.5])
 ylim([min(X.Z, [], 'all'), max(X.Z, [], 'all')])
 set(gca, 'XDir','reverse') % Very important
 for tim = 1:1:size(F,1)

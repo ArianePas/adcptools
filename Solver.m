@@ -294,6 +294,7 @@ classdef Solver < helpers.ArraySupport
             if obj.opts.set_diagcomp
                 obj.opts.preconditioner_opts.diagcomp = max(sum(abs(A),2)./diag(A))-2;
             end
+            
             L = ichol(A, obj.opts.preconditioner_opts);
             [p, ~, ~, iter, ~] = pcg(A, rhs, obj.opts.pcg_tol, obj.opts.pcg_iter, L, L');
         end

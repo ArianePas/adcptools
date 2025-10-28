@@ -1,3 +1,4 @@
+
 % Script to play for Ariane
 close all
 clc
@@ -5,7 +6,7 @@ clear all
 %%
 dir = 'C:\Users\arian\Documents\internship\datafiles matlab\portneuf';
 addpath(genpath(dir))
-load('portneuf2009.mat')
+
 %% Path management
 RF = 'C:\Users\arian\Documents\internship'; %RootFolder
 addpath(genpath('C:\Users\arian\Documents\internship\git\adcptools')); %path to ADCPTools of Bart Vermeulen
@@ -26,7 +27,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Lauzon_0_0', './2009/ADCP 2009/Lauzon_0');
+dat = rdi.readDeployment('Portneuf_0_0', './2009/ADCP 2009/Portneuf_0');
 %% Load water level data
 load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
@@ -44,11 +45,12 @@ V = rdi.VMADCP(dat);
 %  V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
 V.water_level_object = water_level;
-
 B = BathymetryScatteredPoints(V);
 
+B.known = B.known(:,(B.known(3,:)<-2.5));
+
+
 %Bfilt = find(B.known(2,:)>0);
-B.known = B.known(:,(B.known(3,:)<-0.01));
 
 B.interpolator.span = .001;
 figure;
@@ -70,7 +72,7 @@ mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 
 % input preferred mresh size
 
-hver = 2.5; % depth mesh cell in m
+hver = 5; % depth mesh cell in m
 hhor = 25; %width mesh cell in m
 
 %% select max & min in that order
@@ -112,7 +114,7 @@ transect = '2009';
 
 
 
- reg_weights = [1,1,1,1,1];  % [0,0,0,0,0], [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1][10,10,100,100,10]
+ reg_weights =  [0,0,0,0,0];%[100,100,100,100,100] ;% , [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1][10,10,100,100,10]
 
 
 %% saving results
@@ -155,15 +157,104 @@ end
 
 t0 = (datenum(V.time(1)))*86400;
 t_end = (datenum(V.time(end)))*86400;  
-t_plot = (t0:300:t_end);
+t_plot = (t0:10:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 15,56,102,173,242,302,401,438);
-
+plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 120,203,211,219, 230,235,239,243);
+%%
+[RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks);
 %% plot results - mesh video
 
  flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
+
+%% plot/calculate regularisation error for mesh
+% CV1 = generalisation error, CV2 = training error)
+
+CV = double.empty;
+
+hor = [150,100,100,50,25,25,15,5, 5, 3]; %3 [5,5, 15, 25, 25, 50, 100, 100, 150]
+ver = [10,10,5,5,5,2.5,2.5,2.5, 1, 1]; %1 [1,2.5, 2.5, 2.5, 5, 5, 5, 10, 10]
+
+figure
+hold on
+
+for i = 1:length(hor)
+    hhor = hor(i);
+    hver = ver(i);
+
+    n = round(lengthriv/hhor);
+    z = round(depthriv/hver);
+    acthor = lengthriv/n;
+    actver = depthriv/z;
+    
+    
+    fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+    fprintf('Used vertical mesh size is: %.2f\n', actver);
+    
+    mesh = mesh_makers.get_mesh(resn = n, resz = z);
+
+    flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg_weights, 1, model_name);
+    
+    line_label = [num2str(hhor) ',' num2str(hver)]
+    
+    cross_validate_1D_plotmult(flow, 0, 1, 20, line_label)
+    label()
+end
+
+hold off
+%% remove thislines
+figure
+plot(CV(2,:))
+%%
+cross_validate_1D(flow,0,1,100)
+%%
+cv = zeros(100);
+for i=1:length(cv)
+err = cross_validate_0D(flow);
+CV(i) = err(1,1);
+end
+%% plot/calculate regularisation error for mesh
+% CV1 = generalisation error, CV2 = training error)
+
+CV = double.empty;
+
+hor = [150,100,100,50,25,25,15,5, 5, 3]; %3 [5,5, 15, 25, 25, 50, 100, 100, 150]
+ver = [10,10,5,5,5,2.5,2.5,2.5, 1, 1]; %1 [1,2.5, 2.5, 2.5, 5, 5, 5, 10, 10]
+
+for i = 1:length(hor)
+    hhor = hor(i);
+    hver = ver(i);
+
+    n = round(lengthriv/hhor);
+    z = round(depthriv/hver);
+    acthor = lengthriv/n;
+    actver = depthriv/z;
+    
+    
+    fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+    fprintf('Used vertical mesh size is: %.2f\n', actver);
+    
+    mesh = mesh_makers.get_mesh(resn = n, resz = z);
+
+    flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg_weights, 1, model_name);
+    
+        figure
+    mesh.plot(flow.ns)
+    colorbar
+
+    figure
+    flow.plot_solution
+
+    err = cross_validate_0D(flow);
+
+    cross_validate_1D(flow, 0, 1, 20)
+%     cross_validate_2D(flow, [0,0], [10,10], [20,20])
+    
+
+    CV(1,i) = err{1,1};
+    CV(2,i) = err{1,2};
+end
 
 %% a, b to Amplitude and phase
 
@@ -332,6 +423,7 @@ function flow_tracks = get_model_individual_track(V, mesh, bathy, xs, reg_weight
 
         flow_solv.rotation = xs.angle;
 
+        
         flow_tracks.(track_name) = flow_solv.get_solution();
 
         if save_parameters
@@ -414,9 +506,7 @@ function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, c
         hold on
 
          plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
-
-        hold on
-         scatter(time_single(:,1), flows_single_in_cell(:,nr))
+%          scatter(time_single(:,1), flows_single_in_cell(:,nr))
 
         title(strcat("CellID = ",string(CellID)))
     end
@@ -433,6 +523,95 @@ function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, c
         saveas(gcf,fig_location)
     end
 end
+
+
+
+function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituents,xs,V, channel, flow_tracks)
+    % Tidal components' periods (in hours)
+    M2_period = 12.4206012;          % Semi-diurnal component
+    M4_period = 6.210300601;         % M4 (fourth diurnal component)
+    M6_period = 4.140200401;
+    M1_period = 24.84120241;
+    M3_period = 8.280400802;
+
+
+    oM2 = 1/(M2_period*3600)*2*pi;       % rad/s
+    oM4 = 1/(M4_period*3600)*2*pi;       % rad/s
+    oM6 = 1/(M6_period*3600)*2*pi;       % rad/s
+    oM1 = 1/(M1_period*3600)*2*pi;       % rad/s
+    oM3 = 1/(M3_period*3600)*2*pi;       % rad/s
+    
+
+    for j = 1:mesh.ncells
+ 
+        CellID = j;
+
+        flows_single_in_cell = table();
+        time_single = table();
+
+        for i = 1:numel(fieldnames(flow_tracks))
+            measurement_time = median(V.time(V.fileid == i));
+
+            track_name = strcat("Track_", num2str(i));
+            newRow = flow_tracks.(track_name).pars(CellID,:);
+
+            if isempty(flows_single_in_cell)
+                % If NewTable is empty, just initialize it with the first newRow
+                flows_single_in_cell = newRow;
+                time_single = measurement_time;
+            else
+                % Concatenate the newRow to the NewTable
+                flows_single_in_cell = [flows_single_in_cell; newRow];
+                time_single = [time_single; measurement_time];
+            end
+        end
+
+        calc_vel_U = pars_U(CellID,1);
+        for constituent = 1:length(constituents)
+            cur_constiturent = constituents{constituent};
+            pars_col = constituent*2;
+            period = eval(['o', cur_constiturent]);
+            calc_vel_U = calc_vel_U + pars_U(CellID,pars_col)*cos(period.*t_plot) + pars_U(CellID,pars_col+1)*sin(period.*t_plot);
+        end
+
+%         plot(datetime(t_plot/86400, 'ConvertFrom', 'datenum'), calc_vel_U);
+% 
+         [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, lett);
+         
+         RMSE = []; 
+         for h = 1:length(time_in_column)
+         [val,idx] = min(abs(datetime(t_plot/86400, 'ConvertFrom', 'datenum') - time_in_column(h)));
+
+         u_vel = (calc_vel_U(1,idx));
+         RMSE(h) =  sqrt((mean(vel_in_cell(:,h), 'omitnan')-u_vel)^2);
+         end
+         RMSE_cell(j) = mean(RMSE);
+         fprintf('RMSE percentage: %2.2f percent \n', (j/mesh.ncells)*100)
+%        hold on
+% 
+%        plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
+% 
+%        hold on
+%        scatter(time_single(:,1), flows_single_in_cell(:,nr))
+% 
+%        title(strcat("CellID = ",string(CellID)))
+    end
+% 
+    figure
+    subplot(1, 1, 1);
+    patch(mesh.n_patch,mesh.z_patch,RMSE_cell)
+
+    cMap = interp1([0;1],[0 1 0; 1 0 0],linspace(0,1,256));
+    colormap(cMap)
+    colorbar
+    clim([0 0.25])
+    hold on
+    hbed = plot(mesh.nb_all,mesh.zb_all,'k','Linewidth',2);
+    hwater = plot(mesh.nw,mesh.nw*0+mesh.water_level,'b','Linewidth',2);
+    hold off
+
+end
+
 
 function flow = load_tidal_model(model_name)
     load_name = strcat("Matlab_data\Fitted_parameters\",model_name,'_pars.mat');

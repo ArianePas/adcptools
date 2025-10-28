@@ -289,10 +289,26 @@ classdef Solution < handle & helpers.ArraySupport
 
             figure;
             plot(rp, [CV{:,1}])
+            hold on
+            plot(rp,[CV{:,2}])
             xlabel('reg pars')
             ylabel('generalization error')
             title('lambda vs scaled generalization error')
         end
+
+        function CV = cross_validate_1D_plotmult(obj, min, max, N, Label)
+            % 1D analysis: scalar min, max, N.
+            %reg_pars_mat = reg_pars_symlog(obj, min, max)
+            rp  = reg_pars_symlog(obj, min, max, N);
+            reg_pars_mat = repmat(rp, 1, 5);
+            CV = obj.cross_validate(reg_pars_mat);
+
+            plot(rp, [CV{:,1}], 'DisplayName', Label)
+            xlabel('reg pars')
+            ylabel('generalization error')
+            title('lambda vs scaled generalization error')
+        end
+
 
         function CV = cross_validate_2D(obj, min, max, N)
             % 2D analysis: two-element inputs min, max, N. (i.e. min =
