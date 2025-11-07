@@ -12,7 +12,7 @@ function tf = load_loess_package()
     end
 
     adcptools_path = fileparts(which('ADCP'));
-    loess_path = fullfile(adcptools_path, "loess");
+    loess_path = fullfile(adcptools_path, "loess_submodule");
 
 
     % If loess does not exist, add path
