@@ -18,7 +18,7 @@ addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processi
 constituents = {'M2', 'M4'};
 
 %% Loading in the data
-addpath('./Donnees_validation'); %path to data
+% addpath('./Donnees_validation'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
 %dat = rdi.readDeployment('Lauzon_0_0', './data/Lauzon_0');
 
@@ -46,7 +46,7 @@ V = rdi.VMADCP(dat);
 
 B = BathymetryScatteredPoints(V);
 
-%Bfilt = find(B.known(2,:)>0);
+Bfilt = find(B.known(2,:)>0);
 
 B.interpolator.span = .001;
 figure;
