@@ -24,7 +24,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Lauzon_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Lauzon_0');
+dat = rdi.readDeployment('Quebec_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Quebec_0');
 %% Load water level data
 load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
@@ -108,26 +108,26 @@ opts = SolverOptions(extrapolate_vert = 0, lat_weight_factor = 10); % possibly m
 %opts.force_zero = [1 1 1 1 1];
 
 % Empirical model: VelocityModel;
-flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empirical model formulation
+flow_model = TidalVelocityModel; % possibly modify to enter desired empirical model formulation
 flow_model.constituents = constituents;
 
 %or TaylorVelocityModel
-flow_model.s_order = [1 1 1]; %u
-flow_model.n_order = [1 1 1]; %v
-flow_model.sigma_order = [1 1 1]; %sja
-
-
-%Solver options and regularization
+% flow_model.s_order = [1 1 1]; %u
+% flow_model.n_order = [1 1 1]; %v
+% flow_model.sigma_order = [1 1 1]; %sja
+% 
+% 
+% %Solver options and regularization
 flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 'NoExpand', V);
-
-
-% Bulk regularization parameter % possibly modify
-lc = 0.1;
-flow_regs(1).weight =  lc;
-flow_regs(2).weight =  lc;
-flow_regs(3).weight =  lc;
-flow_regs(4).weight =  lc;
-flow_regs(5).weight =  lc;
+% 
+% 
+% % Bulk regularization parameter % possibly modify
+% lc = 0.1;
+% flow_regs(1).weight =  lc;
+% flow_regs(2).weight =  lc;
+% flow_regs(3).weight =  lc;
+% flow_regs(4).weight =  lc;
+% flow_regs(5).weight =  lc;
 
 
 
@@ -142,8 +142,8 @@ flow.plot_solution()
 
 %%
 %     err = cross_validate_0D(flow);
-
-    cross_validate_1D(flow, 0, 1, 10)
+[RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel);
+    cross_validate_1D(flow, 0, 1000, 1000)
 %     cross_validate_2D(flow, [0,0], [1,1], [4,4])
     
 

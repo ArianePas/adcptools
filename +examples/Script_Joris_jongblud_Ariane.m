@@ -27,7 +27,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Portneuf_0_0', './2009/ADCP 2009/Portneuf_0');
+dat = rdi.readDeployment('Quebec_0_0', './2009/ADCP 2009/Quebec_0');
 %% Load water level data
 load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
@@ -77,7 +77,7 @@ hhor = 25; %width mesh cell in m
 
 %% select max & min in that order
 
-newplot
+figure
 plot(V.horizontal_position(1,:))
 [~, x] = ginput;
 maxx = x(1,1);
@@ -114,7 +114,7 @@ transect = '2009';
 
 
 
- reg_weights =  [0,0,0,0,0];%[100,100,100,100,100] ;% , [0.25,0.25,0.25,0.25,0.25], [1,1,1,1,1], [1,1,10,10,1][10,10,100,100,10]
+ reg_weights = [0,0,0,0,0];%[100,100,100,100,100];%[1,1,1,1,1];
 
 
 %% saving results
@@ -161,9 +161,13 @@ t_plot = (t0:10:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks, 0, model_name, 120,203,211,219, 230,235,239,243);
+plot_ts_random_cells(mesh, 'U', 1, pars_U, t_plot, constituents, xs, V, channel,  0, model_name, 58,100,150,166,203,219,230,239);
 %%
-[RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel, flow_tracks);
+[RMSE] = plot_mrse_mesh(mesh,  'U', 1, pars_U   , t_plot, constituents, xs, V, channel);
+
+%% l curve
+[rho,eta,lambda] = find_lparameters(flow,0,100,10);
+
 %% plot results - mesh video
 
  flow_pattern_video(flow, mesh, constituents, t_plot,  1, model_name)
@@ -433,7 +437,7 @@ function flow_tracks = get_model_individual_track(V, mesh, bathy, xs, reg_weight
     end
 end
 
-function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, channel, flow_tracks, save_figure, model_name,a,b,c, d, e, f, g, h)
+function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, channel, save_figure, model_name,a,b,c, d, e, f, g, h)
     % Tidal components' periods (in hours)
     M2_period = 12.4206012;          % Semi-diurnal component
     M4_period = 6.210300601;         % M4 (fourth diurnal component)
@@ -473,22 +477,22 @@ function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, c
         flows_single_in_cell = table();
         time_single = table();
 
-        for i = 1:numel(fieldnames(flow_tracks))
-            measurement_time = median(V.time(V.fileid == i));
-
-            track_name = strcat("Track_", num2str(i));
-            newRow = flow_tracks.(track_name).pars(CellID,:);
-
-            if isempty(flows_single_in_cell)
-                % If NewTable is empty, just initialize it with the first newRow
-                flows_single_in_cell = newRow;
-                time_single = measurement_time;
-            else
-                % Concatenate the newRow to the NewTable
-                flows_single_in_cell = [flows_single_in_cell; newRow];
-                time_single = [time_single; measurement_time];
-            end
-        end
+%         for i = 1:numel(fieldnames(flow_tracks))
+%             measurement_time = median(V.time(V.fileid == i));
+% 
+%             track_name = strcat("Track_", num2str(i));
+%             newRow = flow_tracks.(track_name).pars(CellID,:);
+% 
+%             if isempty(flows_single_in_cell)
+%                 % If NewTable is empty, just initialize it with the first newRow
+%                 flows_single_in_cell = newRow;
+%                 time_single = measurement_time;
+%             else
+%                 % Concatenate the newRow to the NewTable
+%                 flows_single_in_cell = [flows_single_in_cell; newRow];
+%                 time_single = [time_single; measurement_time];
+%             end
+%         end
 
         subplot(4, 4, k);
 
@@ -526,7 +530,7 @@ end
 
 
 
-function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituents,xs,V, channel, flow_tracks)
+function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituents,xs,V, channel)
     % Tidal components' periods (in hours)
     M2_period = 12.4206012;          % Semi-diurnal component
     M4_period = 6.210300601;         % M4 (fourth diurnal component)
@@ -549,22 +553,22 @@ function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituent
         flows_single_in_cell = table();
         time_single = table();
 
-        for i = 1:numel(fieldnames(flow_tracks))
-            measurement_time = median(V.time(V.fileid == i));
-
-            track_name = strcat("Track_", num2str(i));
-            newRow = flow_tracks.(track_name).pars(CellID,:);
-
-            if isempty(flows_single_in_cell)
-                % If NewTable is empty, just initialize it with the first newRow
-                flows_single_in_cell = newRow;
-                time_single = measurement_time;
-            else
-                % Concatenate the newRow to the NewTable
-                flows_single_in_cell = [flows_single_in_cell; newRow];
-                time_single = [time_single; measurement_time];
-            end
-        end
+%         for i = 1:numel(fieldnames(flow_tracks))
+%             measurement_time = median(V.time(V.fileid == i));
+% 
+%             track_name = strcat("Track_", num2str(i));
+%             newRow = flow_tracks.(track_name).pars(CellID,:);
+% 
+%             if isempty(flows_single_in_cell)
+%                 % If NewTable is empty, just initialize it with the first newRow
+%                 flows_single_in_cell = newRow;
+%                 time_single = measurement_time;
+%             else
+%                 % Concatenate the newRow to the NewTable
+%                 flows_single_in_cell = [flows_single_in_cell; newRow];
+%                 time_single = [time_single; measurement_time];
+%             end
+%         end
 
         calc_vel_U = pars_U(CellID,1);
         for constituent = 1:length(constituents)
@@ -583,9 +587,10 @@ function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituent
          [val,idx] = min(abs(datetime(t_plot/86400, 'ConvertFrom', 'datenum') - time_in_column(h)));
 
          u_vel = (calc_vel_U(1,idx));
-         RMSE(h) =  sqrt((mean(vel_in_cell(:,h), 'omitnan')-u_vel)^2);
+         RMSE(:,h) = ((vel_in_cell(:,h)-u_vel).^2);
          end
-         RMSE_cell(j) = mean(RMSE);
+         RMSE_cell(j) = sqrt(mean(RMSE, 'all', 'omitnan'));
+
          fprintf('RMSE percentage: %2.2f percent \n', (j/mesh.ncells)*100)
 %        hold on
 % 
@@ -604,7 +609,7 @@ function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituent
     cMap = interp1([0;1],[0 1 0; 1 0 0],linspace(0,1,256));
     colormap(cMap)
     colorbar
-    clim([0 0.25])
+    clim([0 0.4])
     hold on
     hbed = plot(mesh.nb_all,mesh.zb_all,'k','Linewidth',2);
     hwater = plot(mesh.nw,mesh.nw*0+mesh.water_level,'b','Linewidth',2);
@@ -632,7 +637,7 @@ function [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(cel
     tim=V.time;
 
     vel_sn = {nan(size(vel_xy{1}))};
-    vel_sn{1}(:,:,3) = vel_xy{1}(:,:,3);
+   vel_sn{1}(:,:,3) = vel_xy{1}(:,:,3);
     vel_sn{1}(:,:,4) = vel_xy{1}(:,:,4);
 
     R = [xs.direction_orthogonal(1), xs.direction_orthogonal(2); xs.direction(1),  xs.direction(2)];
@@ -651,15 +656,17 @@ function [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(cel
         end
     end
 
-    bounds_cellID_x = [min(mesh.x_patch(:,cellID))-1 max(mesh.x_patch(:,cellID))+1];
-    bounds_cellID_y = [min(mesh.y_patch(:,cellID)) max(mesh.y_patch(:,cellID))];
-    bounds_cellID_z = [min(mesh.z_patch(:,cellID))-0.25 max(mesh.z_patch(:,cellID))+0.25];
+% %     bounds_cellID_x = [min(mesh.x_patch(:,cellID))-1 max(mesh.x_patch(:,cellID))+1];
+% %     bounds_cellID_y = [min(mesh.y_patch(:,cellID)) max(mesh.y_patch(:,cellID))];
+% %     bounds_cellID_z = [min(mesh.z_patch(:,cellID))-0.25 max(mesh.z_patch(:,cellID))+0.25];
 
-    if isequal(channel, 'Meghna')
-        valid_column = V.horizontal_position(1,:) >= bounds_cellID_x(1) & V.horizontal_position(1,:) <= bounds_cellID_x(2);
-    else
-        valid_column = V.horizontal_position(2,:) >= bounds_cellID_y(1) & V.horizontal_position(2,:) <= bounds_cellID_y(2);
-    end
+
+    bounds_cellID_x = [min(mesh.x_patch(:,cellID)) max(mesh.x_patch(:,cellID))];
+    bounds_cellID_y = [min(mesh.y_patch(:,cellID)) max(mesh.y_patch(:,cellID))];
+    bounds_cellID_z = [min(mesh.z_patch(:,cellID)) max(mesh.z_patch(:,cellID))];
+
+    valid_column = V.horizontal_position(2,:) >= bounds_cellID_y(1) & V.horizontal_position(2,:) <= bounds_cellID_y(2);
+
     depth_in_column = vel_pos{1}(:,(valid_column));
 
     time_in_column = tim(:,valid_column);

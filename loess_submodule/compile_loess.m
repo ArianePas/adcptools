@@ -7,8 +7,7 @@ if ispc
         '-I C:\local\boost_1_65_1',...                  % Boost headers
         '-L C:\dev\CGAL-4.11\build\lib',...             % CGAL compiled libraries
         '-L C:\local\boost_1_65_1\lib64-msvc-12.0',...  % Boost libraries
-        '-lmwservices',...
-        '-lmwbuiltinsutil',...
+       "C:\Program Files\MATLAB\R2025b\extern\lib\win64\mingw64\libmwservices.lib",...
         'loess.cpp')
 elseif isunix
     if exist('/usr/bin/gcc-10','file')

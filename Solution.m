@@ -339,7 +339,19 @@ classdef Solution < handle & helpers.ArraySupport
 
         end
 
-        
+        function [rho,eta,lambda] = find_lparameters(obj, min, max, N)
+            % 1D analysis: scalar min, max, N.
+            %reg_pars_mat = reg_pars_symlog(obj, min, max)
+            lambda  = reg_pars_symlog(obj, min, max, N);
+            reg_pars_mat = repmat(lambda, 1, 5);
+            [rho,eta] = obj.l_curvpar(reg_pars_mat);
+
+            figure;
+            plot(eta,rho)
+            xlabel('eta')
+            ylabel('rho')
+            title('l_curve')
+        end
 
 
     end
@@ -347,6 +359,37 @@ classdef Solution < handle & helpers.ArraySupport
     methods(Access=protected)
 
 
+        function [rho,eta] = l_curvpar(obj, reg_pars_mat)
+            % reg_pars_mat is a matrix of size nreg x 5, with the 5 known
+            % regularization constraints.
+
+            % This function is an ad hoc function and has not been
+            % optimized using matrix algebra.
+            sol = cell([size(reg_pars_mat, 1), 1]);
+            rho = [];
+            eta = [];
+            rhormse = [];
+     
+                % Construct training matrix and data
+                M0 = obj.M;
+                b0 = obj.b;
+
+                Mp = M0'*M0;
+                i = 0;
+                sol0 = obj.assemble_solve_single(M0, b0, Mp, [0,0,0,0,0]);
+                for rp = 1:size(reg_pars_mat, 1)
+                    sol{rp}(:, 1) = obj.assemble_solve_single(M0, b0, Mp, reg_pars_mat(rp,:));
+                    i = i+1;
+                    fprintf('RMSE percentage: %2.2f percent \n', 100*i/length(rp));
+                    figure
+                    plot(((M0*sol{rp,1}(:,1))-b0))
+                    eta(rp) = mean(abs((M0*sol{rp,1}(:,1) - b0)-(M0*sol0-b0)), 'omitnan');         
+                    rhormse= (M0*sol{rp}(:, 1)-b0).^2;
+                    rho(rp) = (mean(rhormse, 'omitnan'));
+                end
+        
+  
+        end
 
         function CV = cross_validate(obj, reg_pars_mat)
             % reg_pars_mat is a matrix of size nreg x 5, with the 5 known
