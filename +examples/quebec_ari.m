@@ -142,9 +142,9 @@ flow.plot_solution()
 
 %%
 %     err = cross_validate_0D(flow);
-[RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel);
-    cross_validate_1D(flow, 0, 1000, 1000)
-%     cross_validate_2D(flow, [0,0], [1,1], [4,4])
+% [RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel);
+%     cross_validate_1D(flow, 0, 1000, 1000)
+     cross_validate_2D(flow, [0,0], [100,100], [10,10],2)
     
 
 %% Post-Processing - focus on decomposition of the solution
