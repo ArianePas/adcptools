@@ -4,12 +4,10 @@ close all
 clc
 clear all
 %%
-dir = 'C:\Users\arian\Documents\internship\datafiles matlab\portneuf';
-addpath(genpath(dir))
 
 %% Path management
-RF = 'C:\Users\arian\Documents\internship'; %RootFolder
-addpath(genpath('C:\Users\arian\Documents\internship\git\adcptools')); %path to ADCPTools of Bart Vermeulen
+RF = 'C:\Users\Ariane.VandePas\Documents'; %RootFolder
+addpath(genpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools')); %path to ADCPTools of Bart Vermeulen
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 %% Quick documentation walkthrough - comment out
 
@@ -27,7 +25,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec_0_0', 'C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Quebec_0');
+dat = rdi.readDeployment('Portneuf_0_0', 'C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Portneuf_0');
 %% Load water level data
 load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
