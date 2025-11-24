@@ -104,7 +104,7 @@ classdef Solver < helpers.ArraySupport
 
             % get velocity position, velocity data, and transformation
             % matrices to obtain earth velocity
-            [vpos, dat, xform, time, wl] = get_solver_input(obj);
+            [vpos, dat, xform, time, wl, fileid] = get_solver_input(obj);
 
             %%% compute s,n and sigma coordinates
             % get velocity position transverse to cross section
@@ -142,6 +142,7 @@ classdef Solver < helpers.ArraySupport
             s_pos = s_pos(fgood);
             z_pos = z_pos(fgood);
             time = time(fgood);
+            fileid = fileid(fgood);
             sig_pos = sig_pos(fgood);
 
             % compute velocity model input
@@ -169,7 +170,7 @@ classdef Solver < helpers.ArraySupport
                     M(:,1:npars(ccomp),ccomp).*xform(:,ccomp);
                 par_start = par_start + npars(ccomp);
             end
-            [M, b, cell_idx_] = obj.reorder_model_matrix(Mb0, dat, cell_idx);
+            [M, b, cell_idx_, time_, fileid_] = obj.reorder_model_matrix(Mb0, dat, cell_idx, time, fileid);
             %disp("Scaling system of data eqs") % In practice, the 1-norm
             %of M is approx 1.
             %[M,b] = helpers.scale_unity(M, b);
@@ -189,6 +190,8 @@ classdef Solver < helpers.ArraySupport
             p = obj.solve(M, b);
             S.solver = obj;
             S.p = p;
+            S.time = time_;
+            S.fileid = fileid_;
         end
         function varargout = get_parameters(obj, S)
             arguments
@@ -316,16 +319,17 @@ classdef Solver < helpers.ArraySupport
         end
                 
 
-        function [M, b, cell_idx] = reorder_model_matrix(obj, Mb0, dat, cell_idx)
+        function [M, b, cell_idx, time, fileid] = reorder_model_matrix(obj, Mb0, dat, cell_idx,time,fileid)
             ncells = obj.mesh.ncells;
             npars = size(Mb0,2);
             nbvels = size(Mb0,1);
 
             % sort cells, to diaganolize matrix
             [cell_idx, srt_idx] = sort(cell_idx);
+            time = time(srt_idx);
+            fileid = fileid(srt_idx);
             Mb0 = Mb0(srt_idx,:);
             b = sparse(dat(srt_idx));
-
             % build sparse matrix indices
             col_idx = (cell_idx - 1) * npars + (1 : npars);
             row_idx = repmat((1 : nbvels)', 1, npars);

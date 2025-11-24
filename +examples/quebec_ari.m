@@ -25,6 +25,119 @@ addpath('./Donnees_validation'); %path to data
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
 dat = rdi.readDeployment('Quebec_0_0','C:\Users\arian\Documents\internship\Donnees_validation\2009\ADCP 2009\Quebec_0');
+
+%% test dat frequency results
+iseven = 1:50:30430;
+ dat.FileNumber = dat.FileNumber(:,iseven);
+ dat.firmver = dat.firmver(:,iseven);
+ dat.firmrev = dat.firmrev(:,iseven);
+ dat.sysconf = dat.sysconf(:,iseven);
+ dat.sysconfstr = dat.sysconfstr(:,iseven);
+ dat.SymData = dat.SymData(:,iseven);
+ dat.LagLength = dat.LagLength(:,iseven);
+ dat.usedbeams = dat.usedbeams(:,iseven);
+ dat.nbins = dat.nbins(:,iseven);
+ dat.pingperens = dat.pingperens(:,iseven);
+ dat.binsize = dat.binsize(:,iseven);
+ dat.blnk = dat.blnk(:,iseven);
+ dat.minthrsh = dat.minthrsh(:,iseven);
+ dat.ncodrep = dat.ncodrep(:,iseven);
+ dat.minpercgood = dat.minpercgood(:,iseven);
+ dat.maxerrvel = dat.maxerrvel(:,iseven);
+ dat.Tbetweenpng = dat.Tbetweenpng(:,iseven);
+ dat.corinfo = dat.corinfo(:,iseven);
+ dat.corstr = dat.corstr(:,iseven);
+ dat.headalign = dat.headalign(:,iseven);
+ dat.headbias = dat.headbias(:,iseven);
+ dat.sensource = dat.sensource(:,iseven);
+ dat.senavail = dat.senavail(:,iseven);
+ dat.distmidbin1 = dat.distmidbin1(:,iseven);
+ dat.lngthtranspulse = dat.lngthtranspulse(:,iseven);
+ dat.watrefbins = dat.watrefbins(:,iseven);
+ dat.mintarget = dat.mintarget(:,iseven);
+ dat.lowlattrig = dat.lowlattrig(:,iseven);
+ dat.distpulse = dat.distpulse(:,iseven);
+ dat.cpuserial = dat.cpuserial(:,iseven);
+ dat.bandwidth = dat.bandwidth(:,iseven);
+ dat.syspower = dat.syspower(:,iseven);
+ dat.basefreqid = dat.basefreqid(:,iseven);
+ dat.serial = dat.serial(:,iseven);
+ dat.HADCPbeamangle = dat.HADCPbeamangle(:,iseven);
+ dat.VEL = dat.VEL(:,iseven,:);
+ dat.ECHO =  dat.ECHO(:,iseven,:);
+ dat.CORR = dat.CORR(:,iseven,:);
+ dat.PERC = dat.PERC(:,iseven,:);
+ dat.btpingperens = dat.btpingperens(:,iseven);
+ dat.reacqdelay = dat.reacqdelay(:,iseven);
+ dat.mincormag = dat.mincormag(:,iseven);
+ dat.minevampl = dat.minevampl(:,iseven);
+ dat.btminpergood = dat.btminpergood(:,iseven);
+ dat.btmode = dat.btmode(:,iseven);
+ dat.btmaxerrv = dat.btmaxerrv(:,iseven);
+ dat.btrange = dat.btrange(iseven,:);
+ dat.btvel = dat.btvel(iseven,:);
+ dat.btcor = dat.btcor(iseven,:);
+ dat.btevampl = dat.btevampl(iseven,:);
+ dat.btpercgood = dat.btpercgood(iseven,:);
+ dat.minlyrsize = dat.minlyrsize(:,iseven);
+ dat.nearbnd = dat.nearbnd(:,iseven);
+ dat.farbnd = dat.farbnd(:,iseven);
+ dat.reflyrvel = dat.reflyrvel(iseven,:);
+ dat.reflyrcor = dat.reflyrcor(iseven,:);
+ dat.reflyrint = dat.reflyrint(iseven,:);
+ dat.reflyrpergood = dat.reflyrpergood(iseven,:);
+ dat.maxdepth = dat.maxdepth(:,iseven);
+ dat.rssiamp = dat.rssiamp(iseven,:);
+ dat.gain = dat.gain(:,iseven);
+ dat.sp_btrange_fract = dat.sp_btrange_fract(iseven,:);
+ dat.ensnum = dat.ensnum(:,iseven);
+ dat.BITcheck = dat.BITcheck(iseven,:);
+ dat.speedsound = dat.speedsound(:,iseven);
+ dat.depthtransd = dat.depthtransd(:,iseven);
+ dat.heading = dat.heading(:,iseven);
+ dat.pitch = dat.pitch(:,iseven);
+ dat.roll = dat.roll(:,iseven);
+ dat.salinity = dat.salinity(:,iseven);
+ dat.temperature = dat.temperature(:,iseven);
+ dat.prepingT = dat.prepingT(:,iseven);
+ dat.headstd = dat.headstd(:,iseven);
+ dat.pitchstd = dat.pitchstd(:,iseven);
+ dat.rollstd = dat.rollstd(:,iseven);
+ dat.ADC = dat.ADC(iseven,:);
+ dat.errorstat1 = dat.errorstat1(iseven,:);
+ dat.errorstat2 = dat.errorstat2(iseven,:);
+ dat.errorstat3 = dat.errorstat3(iseven,:);
+ dat.errorstat4 = dat.errorstat4(iseven,:);
+ dat.pressure = dat.pressure(:,iseven);
+ dat.pressurevar = dat.pressurevar(:,iseven);
+ dat.timeV = dat.timeV(iseven,:);
+ dat.timeV1C = dat.timeV1C(iseven,:);
+ dat.NMEAGGA.deltaT = dat.NMEAGGA.deltaT(iseven,:);
+ dat.NMEAGGA.msgHeader = dat.NMEAGGA.msgHeader(iseven,:);
+ dat.NMEAGGA.UTC = dat.NMEAGGA.UTC(iseven,:);
+ dat.NMEAGGA.Lat = dat.NMEAGGA.Lat(iseven,:);
+ dat.NMEAGGA.SN = dat.NMEAGGA.SN(iseven,:);
+ dat.NMEAGGA.Long = dat.NMEAGGA.Long(iseven,:);
+ dat.NMEAGGA.EW = dat.NMEAGGA.EW(iseven,:);
+ dat.NMEAGGA.Qual = dat.NMEAGGA.Qual(iseven,:);
+ dat.NMEAGGA.NSat = dat.NMEAGGA.NSat(iseven,:);
+ dat.NMEAGGA.HDOP = dat.NMEAGGA.HDOP(iseven,:);
+ dat.NMEAGGA.Alt = dat.NMEAGGA.Alt(iseven,:);
+ dat.NMEAGGA.AltUnit = dat.NMEAGGA.AltUnit(iseven,:);
+ dat.NMEAGGA.Geoid = dat.NMEAGGA.Geoid(iseven,:);
+ dat.NMEAGGA.GeoidUnit= dat.NMEAGGA.GeoidUnit(iseven,:);
+ dat.NMEAGGA.AgeDGPS = dat.NMEAGGA.AgeDGPS(iseven,:);
+ dat.NMEAGGA.RefStatID = dat.NMEAGGA.RefStatID(iseven,:);
+ dat.nFiles.GGA.utc = dat.nFiles.GGA.utc(iseven,:);
+ dat.nFiles.GGA.latitude = dat.nFiles.GGA.latitude(iseven,:);
+ dat.nFiles.GGA.longitude = dat.nFiles.GGA.longitude(iseven,:);
+ dat.nFiles.GGA.quality = dat.nFiles.GGA.quality(iseven,:);
+ dat.nFiles.GGA.numsat = dat.nFiles.GGA.numsat(iseven,:);
+ dat.nFiles.GGA.hdop = dat.nFiles.GGA.hdop(iseven,:);
+ dat.nFiles.GGA.alt = dat.nFiles.GGA.alt(iseven,:);
+ dat.nFiles.GGA.geoid = dat.nFiles.GGA.geoid(iseven,:);
+ dat.nFiles.GGA.age_dgps = dat.nFiles.GGA.age_dgps(iseven,:);
+ dat.nFiles.GGA.ref_station_id = dat.nFiles.GGA.ref_station_id(iseven,:);
 %% Load water level data
 load('C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat')
 
@@ -108,26 +221,26 @@ opts = SolverOptions(extrapolate_vert = 0, lat_weight_factor = 10); % possibly m
 %opts.force_zero = [1 1 1 1 1];
 
 % Empirical model: VelocityModel;
-flow_model = TidalVelocityModel; % possibly modify to enter desired empirical model formulation
+flow_model = TaylorTidalVelocityModel; % possibly modify to enter desired empirical model formulation
 flow_model.constituents = constituents;
 
-%or TaylorVelocityModel
-% flow_model.s_order = [1 1 1]; %u
-% flow_model.n_order = [1 1 1]; %v
-% flow_model.sigma_order = [1 1 1]; %sja
-% 
-% 
-% %Solver options and regularization
+% or TaylorVelocityModel
+flow_model.s_order =[1 1 1]; %u
+flow_model.n_order = [1 1 1]; %v
+flow_model.sigma_order = [1 1 1]; %sja
+
+
+%Solver options and regularization
 flow_regs = regularization.Velocity.get_all_regs(mesh, B, xs, flow_model, opts, 'NoExpand', V);
-% 
-% 
-% % Bulk regularization parameter % possibly modify
-% lc = 0.1;
-% flow_regs(1).weight =  lc;
-% flow_regs(2).weight =  lc;
-% flow_regs(3).weight =  lc;
-% flow_regs(4).weight =  lc;
-% flow_regs(5).weight =  lc;
+
+
+% Bulk regularization parameter % possibly modify
+lc = 0.1;
+flow_regs(1).weight =  lc;
+flow_regs(2).weight =  lc;
+flow_regs(3).weight =  lc;
+flow_regs(4).weight =  lc;
+flow_regs(5).weight =  lc;
 
 
 
@@ -144,9 +257,25 @@ flow.plot_solution()
 %     err = cross_validate_0D(flow);
 % [RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel);
 %     cross_validate_1D(flow, 0, 1000, 1000)
-     cross_validate_2D(flow, [0,0], [100,100], [10,10],2)
-    
+for i = 1:14
+    i
+ flow.solver.opts.cv_mode = 'track';
+ cross_validate_1D_track(flow, 0, 0.000001, 200,i);
+end
+  
+%%
+[CV, rpc, rps] = flow.cross_validate_2D_track([0,0], [1, 1e12], [20,20], 2,2);
 
+figure;
+%make use of the ordering of the constraints: first continuity
+
+contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, 20,20), 100)
+colorbar
+colormap(flipud(helpers.cmaps('velmap')))
+% clim([0,2]) % 0 - very good (too good to be true) 1
+xlabel('cont lambda (symlog10)')
+ylabel('smoothness lambda (symlog10)')
+title('2D cross-validation: generalization error')
 %% Post-Processing - focus on decomposition of the solution
 addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
 addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\cartesian")))

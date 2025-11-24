@@ -15,12 +15,13 @@ classdef ADCPDataSolver < Solver
         ensemble_filter (1,1) EnsembleFilter
     end
     methods (Access=protected)
-        function [vpos, vdat, xform, time, wl] = get_solver_input(obj)
+        function [vpos, vdat, xform, time, wl, fileid] = get_solver_input(obj)
             assert(~isempty(obj.adcp),'Adcp property is empty, cannot continue')
             vpos = obj.adcp.cat_property('depth_cell_position'); % velocity positions
             vdat = [];
             xform = [];
             time = [obj.adcp.time];
+            fileid = [obj.adcp.fileid];
             wl = [obj.adcp.water_level_object.get_water_level(time)];
 
             % get selection of data of current repeat transect and
@@ -30,6 +31,8 @@ classdef ADCPDataSolver < Solver
             vpos = vpos(:, ens_filt, :,:);
             time = time(ens_filt);
             time = repmat(time, size(vpos, 1), 1, size(vpos, 3));
+            fileid = fileid(ens_filt);
+            fileid = repmat(fileid, size(vpos, 1), 1, size(vpos, 3));
             wl = wl(ens_filt);
             wl = repmat(wl, size(vpos, 1), 1, size(vpos, 3));
             

@@ -31,11 +31,12 @@ classdef LocationBasedVelocitySolver < VelocitySolver
     %   see also: VMADCP, Mesh, Bathymetry, XSection, Filter,
     %   VelocitySolver
     methods(Access=protected)
-        function [vpos, vdat, xform, time, wl] = get_solver_input(obj)
-            [vpos, ~, ~, time, wl] = get_solver_input@ADCPDataSolver(obj);
+        function [vpos, vdat, xform, time, wl, fileid] = get_solver_input(obj)
+            [vpos, ~, ~, time, wl, fileid] = get_solver_input@ADCPDataSolver(obj);
             
             vpos = reshape(vpos,[],3);
             time = reshape(time,[],1);
+            fileid = reshape(fileid,[],1);
             wl = reshape(wl,[],1);
 
             % get velocity data
