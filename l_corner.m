@@ -91,7 +91,7 @@ lambda_c = lambda(ikappamax);
 
 if nargin>4
     figure(fig);semilogx(lambda,kappa,lambda_c,kappa(ikappamax),'o');
-    figure(fig+1);loglog(rho,eta,rho_c,eta_c,'o');
+    figure(fig+1);loglog(rho,eta, '.' ,rho_c,eta_c,'o');
 end
 
 end

@@ -309,13 +309,13 @@ classdef Solution < handle & helpers.ArraySupport
             title('lambda vs scaled generalization error')
         end
 
- function CV = cross_validate_1D_track(obj, min, max, N, track)
+ function [rho, reg_pars_mat, eta] = cross_validate_1D_track(obj, min, max, N, track)
             % 1D analysis: scalar min, max, N.
             %reg_pars_mat = reg_pars_symlog(obj, min, max)
             rp  = reg_pars_symlog(obj, min, max, N);
             reg_pars_mat = repmat(rp, 1, 5);
-            CV = obj.cross_validate(reg_pars_mat,track);
-
+            [CV, eta] = obj.cross_validate(reg_pars_mat,track);
+            rho = CV;
             figure
             plot(rp, [CV{:,1}])
             xlabel('reg pars')
@@ -414,13 +414,14 @@ classdef Solution < handle & helpers.ArraySupport
         end
 
 
-        function CV = cross_validate(obj, reg_pars_mat,track)
+        function [CV, S] = cross_validate(obj, reg_pars_mat,track)
             % reg_pars_mat is a matrix of size nreg x 5, with the 5 known
             % regularization constraints.
 
             % This function is an ad hoc function and has not been
             % optimized using matrix algebra.
             p_train = cell([size(reg_pars_mat, 1), 1]);
+            p_size = cell([size(reg_pars_mat, 1), 1]);
 
             if strcmp(obj.solver.opts.cv_mode, 'random')
                 nepochs = obj.solver.opts.cv_iter;
@@ -429,6 +430,7 @@ classdef Solution < handle & helpers.ArraySupport
             end
             niter = size(reg_pars_mat, 1)*nepochs;
             E = cell([size(reg_pars_mat, 1), 2]);
+            S = cell([size(reg_pars_mat, 1), 1]);
             CV = cell([size(reg_pars_mat, 1), 2]);
             i = 0;
             fprintf('Cross-validation percentage: %2.2f percent \n', 100*i/niter)
@@ -437,6 +439,9 @@ classdef Solution < handle & helpers.ArraySupport
                 test_idx = ~train_idx;
 
                 % Construct training matrix and data
+                Mt = obj.M;
+                bt = obj.b;
+
                 M0 = obj.M(train_idx, :);
                 b0 = obj.b(train_idx);
 
@@ -444,6 +449,7 @@ classdef Solution < handle & helpers.ArraySupport
                 b1 = obj.b(test_idx);
 
                 Mp = M0'*M0;
+                Mtp = Mt' *Mt;
 
                 for rp = 1:size(reg_pars_mat, 1)
                     p_train{rp}(:, ep) = obj.assemble_solve_single(M0, b0, Mp, reg_pars_mat(rp,:));
@@ -451,6 +457,11 @@ classdef Solution < handle & helpers.ArraySupport
                     fprintf('Cross-validation percentage: %2.2f percent \n', 100*i/niter)
                     E{rp,1}(1, ep) = mean((M1*p_train{rp}(:, ep) - b1).^2); % Generalization error
                     E{rp,2}(1, ep) = mean((M0*p_train{rp}(:, ep) - b0).^2); % Training error
+                    p_size{rp}(:, ep) = obj.assemble_solve_single(Mt,bt,Mtp, reg_pars_mat(rp,:));
+                    if rp == 1
+                    S0 = Mt*p_size{rp}(:,ep);
+                    end
+                    S{rp,1}(1,ep) = mean(abs(Mt*p_size{rp}(:,ep)-S0));
                 end
             end
             for rp = 1:size(reg_pars_mat, 1)

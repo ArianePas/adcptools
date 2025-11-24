@@ -257,12 +257,15 @@ flow.plot_solution()
 %     err = cross_validate_0D(flow);
 % [RMSE] = plot_mrse_mesh(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel);
 %     cross_validate_1D(flow, 0, 1000, 1000)
-for i = 1:14
-    i
+for i = 8
  flow.solver.opts.cv_mode = 'track';
- cross_validate_1D_track(flow, 0, 0.000001, 200,i);
+ [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 1, 1000,i);
 end
   
+%%
+rho = cell2mat(rho);
+eta = cell2mat(eta);
+[r,e,l] = l_corner(rho2(:,1),eta2(:,1),lambda2(:,1),2,18);
 %%
 [CV, rpc, rps] = flow.cross_validate_2D_track([0,0], [1, 1e12], [20,20], 2,2);
 
