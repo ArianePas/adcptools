@@ -4,12 +4,10 @@ close all
 clc
 clear all
 %%
-dir = 'C:\Users\arian\Documents\internship\datafiles matlab\portneuf';
-addpath(genpath(dir))
 
 %% Path management
-RF = 'C:\Users\arian\Documents\internship'; %RootFolder
-addpath(genpath('C:\Users\arian\Documents\internship\git\adcptools')); %path to ADCPTools of Bart Vermeulen
+RF = 'C:\Users\Ariane.VandePas\Documents'; %RootFolder
+addpath(genpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools')); %path to ADCPTools of Bart Vermeulen
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 %% Quick documentation walkthrough - comment out
 
@@ -27,7 +25,7 @@ addpath('./Donnees_validation'); %path to data
 
 % addpath('./data'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
-dat = rdi.readDeployment('Quebec_0_0', 'C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Quebec_0');
+dat = rdi.readDeployment('Portneuf_0_0', 'C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Portneuf_0');
 %% Load water level data
 load("C:\Users\arian\Documents\internship\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat")
 
@@ -113,6 +111,10 @@ channel = 'portneuf';
 transect = '2009';
 
 
+
+ reg_weights =[0,0,0,0,0];%[1,1,1,1,1];
+
+
 %% saving results
 model_name = get_model_name(channel,tide,transect,constituents,reg_weights);
 % model_name = strcat('CoarseGrid_HighReg_', model_name);
@@ -157,9 +159,9 @@ t_plot = (t0:10:t_end);
 
 %% plot results - changes in selected cell
 
-plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel,  0, model_name, 30,78,114,154,185,192,195,222, u);
+plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel,  0, model_name, 58,100,150,166,203,219,230,239);
 %%
-[RMSE] = plot_mrse_mesh(mesh,  'V', 2, pars_V   , t_plot, constituents, xs, V, channel,u);
+[RMSE] = plot_mrse_mesh(mesh,  'V', 2, pars_V   , t_plot, constituents, xs, V, channel);
 
 %% l curve
 [rho,eta,lambda] = find_lparameters(flow,0,100,10);
@@ -207,7 +209,7 @@ hold off
 figure
 plot(CV(2,:))
 %%
-cross_validate_1D(flow,0,100,10)
+cross_validate_1D(flow,0,1,100)
 %%
 cv = zeros(100);
 for i=1:length(cv)
@@ -433,7 +435,7 @@ function flow_tracks = get_model_individual_track(V, mesh, bathy, xs, reg_weight
     end
 end
 
-function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, channel, save_figure, model_name,a,b,c, d, e, f, g, h, u)
+function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, channel, save_figure, model_name,a,b,c, d, e, f, g, h)
     % Tidal components' periods (in hours)
     M2_period = 12.4206012;          % Semi-diurnal component
     M4_period = 6.210300601;         % M4 (fourth diurnal component)
@@ -489,13 +491,7 @@ function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, c
 %                 time_single = [time_single; measurement_time];
 %             end
 %         end
-        t0 = (datenum(V.time(1)))*86400;
-        t_end = (datenum(V.time(end)))*86400;  
-        tnew = (60/0.5)*(t_end-t0)/86400;
-        step = length((t0:1:t_end))/37;
-        time = (t0:round(step):t_end);
 
-     
         subplot(4, 4, k);
 
         calc_vel_U = pars_U(CellID,1);
@@ -503,21 +499,14 @@ function plot_ts_random_cells(mesh, lett, nr ,pars_U,t_plot,constituents,xs,V, c
             cur_constiturent = constituents{constituent};
             pars_col = constituent*2;
             period = eval(['o', cur_constiturent]);
-             calc_vel_U = calc_vel_U + pars_U(CellID,pars_col)*cos(period.*t_plot) + pars_U(CellID,pars_col+1)*sin(period.*t_plot);
-%             calc_vel_U = calc_vel_U + (pars_U(CellID,pars_col)+ pars_U(CellID,pars_col+5)+ pars_U(CellID,pars_col+10)+ pars_U(CellID,pars_col+15))*cos(period.*t_plot)...
-%                 + (pars_U(CellID,pars_col+1)+ pars_U(CellID,pars_col+6) + pars_U(CellID,pars_col+11)+ pars_U(CellID,pars_col+16))*sin(period.*t_plot)+...
-%                 pars_U(CellID,1+5)+pars_U(CellID,1+10)+pars_U(CellID,1+15);
+            calc_vel_U = calc_vel_U + pars_U(CellID,pars_col)*cos(period.*t_plot) + pars_U(CellID,pars_col+1)*sin(period.*t_plot);
         end
 
-         plot(datetime(t_plot/86400, 'ConvertFrom', 'datenum'), calc_vel_U);
-       
+        plot(datetime(t_plot/86400, 'ConvertFrom', 'datenum'), calc_vel_U);
 
-       [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, lett);
-        
-        
- 
-        plot(datetime(time/86400, 'ConvertFrom', 'datenum'), u{nr}(1:round(tnew),mesh.col_to_cell(CellID),mesh.row_to_cell(CellID)), 'color', 'g')
+        [time_in_column, vel_in_cell] = extract_measured_velocity_mesh_cell(CellID,V,xs,mesh,channel, lett);
         hold on
+
          plot(time_in_column,vel_in_cell,'k.','MarkerSize',4)
 %          scatter(time_single(:,1), flows_single_in_cell(:,nr))
 
@@ -539,7 +528,7 @@ end
 
 
 
-function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituents,xs,V, channel,u)
+function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituents,xs,V, channel)
     % Tidal components' periods (in hours)
     M2_period = 12.4206012;          % Semi-diurnal component
     M4_period = 6.210300601;         % M4 (fourth diurnal component)
@@ -554,11 +543,7 @@ function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituent
     oM1 = 1/(M1_period*3600)*2*pi;       % rad/s
     oM3 = 1/(M3_period*3600)*2*pi;       % rad/s
     
-    t0 = (datenum(V.time(1)))*86400;
-    t_end = (datenum(V.time(end)))*86400;  
-    tnew = (60/0.5)*(t_end-t0)/86400;
-    step = length((t0:1:t_end))/37;
-    time = (t0:round(step):t_end);
+
     for j = 1:mesh.ncells
  
         CellID = j;
@@ -597,9 +582,9 @@ function [RMSE_cell] = plot_mrse_mesh(mesh, lett, nr,  pars_U,t_plot,constituent
          
          RMSE = []; 
          for h = 1:length(time_in_column)
-         [val,idx] = min(abs(datetime(time/86400, 'ConvertFrom', 'datenum') - time_in_column(h)));
+         [val,idx] = min(abs(datetime(t_plot/86400, 'ConvertFrom', 'datenum') - time_in_column(h)));
 
-         u_vel = (u{nr}(idx,mesh.col_to_cell(CellID),mesh.row_to_cell(CellID)));
+         u_vel = (calc_vel_U(1,idx));
          RMSE(:,h) = ((vel_in_cell(:,h)-u_vel).^2);
          end
          RMSE_cell(j) = sqrt(mean(RMSE, 'all', 'omitnan'));

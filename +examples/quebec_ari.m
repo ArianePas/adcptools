@@ -18,7 +18,7 @@ addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processi
 constituents = {'M2', 'M4'};
 
 %% Loading in the data
-addpath('./Donnees_validation'); %path to data
+% addpath('./Donnees_validation'); %path to data
 %dat = rdi.readDeployment('rijn', './data');
 %dat = rdi.readDeployment('Lauzon_0_0', './data/Lauzon_0');
 
@@ -159,7 +159,7 @@ V = rdi.VMADCP(dat);
 
 B = BathymetryScatteredPoints(V);
 
-%Bfilt = find(B.known(2,:)>0);
+Bfilt = find(B.known(2,:)>0);
 
 B.interpolator.span = .001;
 figure;
@@ -277,9 +277,9 @@ xlabel('cont lambda (symlog10)')
 ylabel('smoothness lambda (symlog10)')
 title('2D cross-validation: generalization error')
 %% Post-Processing - focus on decomposition of the solution
-addpath(genpath(strcat(RF,'git\adcptools\+ post_processing')))
-addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\cartesian")))
-addpath(genpath(strcat("C:\Users\arian\Documents\internship\git\adcptools\+post_processing\plot")))
+addpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools')
+addpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools\+post_processing\cartesian')
+addpath(genpath(("C:\Users\Ariane.VandePas\Documents\GitHub\adcptools\+post_processing\plot")))
 tim = flow.solver.adcp.time;
 
 Tlim(1)= min(tim);
@@ -317,7 +317,7 @@ D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
 % Plot some variables
 name = 'flow550_01reg.gif';
 sav = 1;
-animate_solution(u{2}, X, name, sav)
+animate_solution(u{1}, X, name, sav)
 
 [u_decomp, u_avg] = D.decompose_function(u{2}); % U-Flow
 
@@ -392,5 +392,14 @@ title('lambda vs scaled generalization error')
 
     %% stoopid code
 
-    
+function X = get_coords(lim, res)
+t = linspace(lim{1,1}(1), lim{1,1}(2), res(1)); % in days
+n = linspace(lim{2,1}(1), lim{2,1}(2), res(2));
+sig = linspace(lim{3,1}(1), lim{3,1}(2), res(3));
+
+[T, N, Sig] = ndgrid(t, n, sig);
+
+X.t = t; X.y = n; X.sig = sig;
+X.T = T; X.Y = N; X.Sig = Sig;
+end
 
