@@ -551,7 +551,11 @@ classdef Solution < handle & helpers.ArraySupport
 
             elseif strcmp(obj.solver.opts.cv_mode, 'omit_time') % to be implemented
             elseif strcmp(obj.solver.opts.cv_mode, 'track') % to be implemented
-                training_idx = obj.fileid ~= track;
+                if track == 14
+                training_idx = obj.fileid ~= track & track-1;
+                else
+                training_idx = obj.fileid ~= track & track+1;
+                end
             end
         end
 

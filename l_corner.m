@@ -30,11 +30,14 @@ assert(length(eta)==length(lambda),'eta and lambda should be the same length.');
 lrho = log(rho);
 leta = log(eta);
 
+p = 0.9
+
 
 %fit data with smoothing splines
 % pprho = fit(lambda,lrho,fitType,fitOptions);
 if ~isempty(p)
-    ppx = csaps(lambda,lrho,p);
+    ppx = csaps(lambda,lrho,p); %fit smoothing spline
+    
     % ppeta = fit(lambda,leta,fitType,fitOptions);
     ppy = csaps(lambda,leta,p);
     %pp-form, first and second derivatives
@@ -44,6 +47,45 @@ else
     ppy = csaps(lambda,leta);
     %pp-form, first and second derivatives
 end
+% assume lambda and rho_raw exist
+% 1) clean data and compute lrho (natural log)
+valid = isfinite(lambda) & isfinite(rho_raw) & (rho_raw > 0);
+lambda = lambda(valid);
+rho_raw = rho_raw(valid);
+lrho = log(rho_raw);    % natural log
+
+% 2) unique/sort lambda
+[lambda, idx] = unique(lambda, 'stable');   % or 'sorted'
+lrho = lrho(idx);
+
+% 3) fit csaps in log-domain
+p = 0.9;
+pp = csaps(lambda, lrho, p);
+
+% 4) evaluate on fine grid and back-transform
+lam_grid = linspace(min(lambda), max(lambda), 1000);
+lrho_fit = fnval(pp, lam_grid);
+rho_fit = exp(lrho_fit);    % back-transform
+
+% 5) optional bias correction using residual variance
+lrho_at_data = fnval(pp, lambda);
+res = lrho - lrho_at_data;
+sigma2 = mean(res.^2);      % unbiased: use var(res,1) or var(res,0) as needed
+rho_fit_biascorr = exp(lrho_fit + 0.5*sigma2);
+
+% 6) plots
+figure;
+subplot(2,1,1);
+plot(lambda, lrho, 'ko'); hold on;
+plot(lam_grid, lrho_fit, 'b-','LineWidth',1.2);
+xlabel('\lambda'); ylabel('ln(\rho)'); legend('data','csaps fit');
+
+subplot(2,1,2);
+plot(lambda, rho_raw, 'ko'); hold on;
+plot(lam_grid, rho_fit, 'b-','LineWidth',1.2);
+plot(lam_grid, rho_fit_biascorr, 'r--','LineWidth',1);
+set(gca,'YScale','log'); % optional: log-y for clarity
+xlabel('\lambda'); ylabel('\rho'); legend('data','exp(fit)','bias-corr');
 dppx = fnder(ppx);
 dppy = fnder(ppy);
 ddppx = fnder(ppx,2);
