@@ -274,7 +274,7 @@ classdef Solution < handle & helpers.ArraySupport
             end
         end
 
-    function [CV, rpc, rps] = cross_validate_2D_track(obj, min, max, N, k, track)
+    function [CV, rpc, rps] = cross_validate_2D_track(obj, min, max, N, track)
             % 2D analysis: two-element inputs min, max, N. (i.e. min =
             % [0,0])
             reg_pars_cont = obj.reg_pars_symlog(min(1), max(1), N(1));

@@ -9,9 +9,9 @@ addpath(genpath(strcat(RF,'/git/adcptools'))); %path to ADCPTools
 addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processing"))
 % addpath(genpath(strcat(RF,'Tools\adcptools'))); %possible other folders
 
-%% Quick documentation walkthrough - comment out
+%% Information for saving figures
 
-%open_adcptools_documentation()
+transect = 'Portneuf';
 
 %% Constituents
 
@@ -259,11 +259,11 @@ flow.plot_solution()
 %     cross_validate_1D(flow, 0, 1000, 1000)
 for i = 6
  flow.solver.opts.cv_mode = 'track';
- [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 0.0001, 300,i);
+ [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 0.01, 300,i);
  rho = cell2mat(rho);
 eta = cell2mat(eta);
 lambda = lambda *10000;
-[r(i),e(i),l(i)] = l_corner(rho(:,1),eta(:,1),lambda(:,1),0.7,1,0.7,300);
+[r(i),e(i),l(i)] = l_corner(rho(:,1),eta(:,1),lambda(:,1),0.6,1,0.02,300);
 end
   
 %%
@@ -291,7 +291,7 @@ end
 figure;
 %make use of the ordering of the constraints: first continuity
 
-contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, [5,5]), 100)
+contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, [20,20]), 100)
 colorbar
 colormap(flipud(helpers.cmaps('velmap')))
 % clim([0,2]) % 0 - very good (too good to be true) 1
