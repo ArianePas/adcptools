@@ -458,10 +458,7 @@ classdef Solution < handle & helpers.ArraySupport
                     E{rp,1}(1, ep) = mean((M1*p_train{rp}(:, ep) - b1).^2); % Generalization error
                     E{rp,2}(1, ep) = mean((M0*p_train{rp}(:, ep) - b0).^2); % Training error
                     p_size{rp}(:, ep) = obj.assemble_solve_single(Mt,bt,Mtp, reg_pars_mat(rp,:));
-                    if rp == 1
-                    S0 = Mt*p_size{rp}(:,ep);
-                    end
-                    S{rp,1}(1,ep) = mean(abs(Mt*p_size{rp}(:,ep)-S0));
+                    S{rp,1}(1,ep) = sum(p_size{rp}(:,ep).^2);
                 end
             end
             for rp = 1:size(reg_pars_mat, 1)

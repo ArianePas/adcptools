@@ -188,7 +188,7 @@ hhor = 25; %width mesh cell in m
 
 figure
 plot(V.horizontal_position(1,:))
-[~, x] = ginput;
+[~, x] = ginput;%%check this part pls
 maxx = x(1,1);
 minx = x(2,1);
 
@@ -259,10 +259,11 @@ flow.plot_solution()
 %     cross_validate_1D(flow, 0, 1000, 1000)
 for i = 6
  flow.solver.opts.cv_mode = 'track';
- [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 200e-9, 10,i);
+ [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 0.0001, 300,i);
  rho = cell2mat(rho);
 eta = cell2mat(eta);
-[r(i),e(i),l(i)] = l_corner(rho(:,1),eta(:,1),lambda(:,1),1,35+i);
+lambda = lambda *10000;
+[r(i),e(i),l(i)] = l_corner(rho(:,1),eta(:,1),lambda(:,1),0.7,1,0.7,300);
 end
   
 %%
@@ -271,12 +272,26 @@ eta = cell2mat(eta);
 [r,e,l] = l_corner(rho2(:,1),eta2(:,1),lambda2(:,1),2,18);
 [r(i),e(i),l(i)] = l_corner(rho(:,1),eta',lambda',1,35+i);
 %%
-[CV, rpc, rps] = flow.cross_validate_2D_track([0,0], [1, 1e12], [20,20], 2,2);
+for i = 6
+ flow.solver.opts.cv_mode = 'track';
+ [rho, lambda,eta] = cross_validate_1D_track(flow, 0, 0.000000015, 50,i);
+ rho = cell2mat(rho);
+eta = cell2mat(eta);
+scal = 1000000000;
+lambda = lambda*scal;
+[lambdval] = expon(lambda(:,1),rho(:,1),0.9);
+lambda = lambda/scal;
+lambdval = lambdval/scal;
+end
+  
+
+%%
+[CV, rpc, rps] = flow.cross_validate_2D([0,0], [0.001, 0.001], [5,5], 2);
 
 figure;
 %make use of the ordering of the constraints: first continuity
 
-contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, 20,20), 100)
+contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, [5,5]), 100)
 colorbar
 colormap(flipud(helpers.cmaps('velmap')))
 % clim([0,2]) % 0 - very good (too good to be true) 1

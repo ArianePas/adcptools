@@ -111,7 +111,7 @@ constituents = {'M2', 'M4'};
 tide = '';
 channel = 'portneuf';
 transect = '2009';
-
+reg_weights = [1,1,1,1,1]
 
 %% saving results
 model_name = get_model_name(channel,tide,transect,constituents,reg_weights);
@@ -173,8 +173,8 @@ plot_ts_random_cells(mesh, 'V', 2, pars_V, t_plot, constituents, xs, V, channel,
 
 CV = double.empty;
 
-hor = [150,100,100,50,25,25,15,5, 5, 3]; %3 [5,5, 15, 25, 25, 50, 100, 100, 150]
-ver = [10,10,5,5,5,2.5,2.5,2.5, 1, 1]; %1 [1,2.5, 2.5, 2.5, 5, 5, 5, 10, 10]
+hor = [25]; %3 [5,5, 15, 25, 25, 50, 100, 100, 150]
+ver = [2.5]; %1 [1,2.5, 2.5, 2.5, 5, 5, 5, 10, 10]
 
 figure
 hold on
@@ -196,10 +196,10 @@ for i = 1:length(hor)
 
     flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg_weights, 1, model_name);
     
-    line_label = [num2str(hhor) ',' num2str(hver)]
+    % line_label = [num2str(hhor) ',' num2str(hver)]
     
-    cross_validate_1D_plotmult(flow, 0, 1, 20, line_label)
-    label()
+    cross_validate_1D_track(flow, 0, 1e-6, 50,8)
+    
 end
 
 hold off
