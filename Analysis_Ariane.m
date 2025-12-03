@@ -47,8 +47,8 @@ regstepdec = 100;
 pdec = 0.9999;
 
 % minimum error
-max1 = 10000;
-max2 = 10000;
+max1 = 100000;
+max2 = 100000;
 step1 = 25;
 step2 = 25;
 
