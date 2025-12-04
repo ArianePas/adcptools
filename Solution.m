@@ -309,11 +309,17 @@ classdef Solution < handle & helpers.ArraySupport
             title('lambda vs scaled generalization error')
         end
 
- function [rho, reg_pars_mat, eta] = cross_validate_1D_track(obj, min, max, N, track)
+        function [rho, reg_pars_mat, eta] = cross_validate_1D_track(obj, min, max, N, track, con)
             % 1D analysis: scalar min, max, N.
             %reg_pars_mat = reg_pars_symlog(obj, min, max)
             rp  = reg_pars_symlog(obj, min, max, N);
             reg_pars_mat = repmat(rp, 1, 5);
+            if con == 0
+                disp('contunuity regularization to zero')
+                reg_pars_mat(:,1) = 0;
+                reg_pars_mat(:,2) = 0;
+                reg_pars_mat(:,5) = 0;
+            end
             [CV, eta] = obj.cross_validate(reg_pars_mat,track);
             rho = CV;
             figure
