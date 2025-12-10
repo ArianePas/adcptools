@@ -93,6 +93,8 @@ classdef Solution < handle & helpers.ArraySupport
                     "Enter extrapolate = true to linearly " + ...
                     "extrapolate the solution.")
             end
+            ev_cidx(isnan(ev_cidx)) = max(ev_cidx);
+
             n_center = reshape(...
                 obj.solver.mesh.n_middle(obj.solver.mesh.col_to_cell), [], 1);
             dS = X.dX*ones(size(ev_cidx));
@@ -554,11 +556,7 @@ classdef Solution < handle & helpers.ArraySupport
 
             elseif strcmp(obj.solver.opts.cv_mode, 'omit_time') % to be implemented
             elseif strcmp(obj.solver.opts.cv_mode, 'track') % to be implemented
-                if track == 14
-                training_idx = obj.fileid ~= track & track-1;
-                else
-                training_idx = obj.fileid ~= track & track+1;
-                end
+                training_idx = obj.fileid ~= track;
             end
         end
 

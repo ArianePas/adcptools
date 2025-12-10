@@ -30,13 +30,14 @@ assert(length(eta)==length(lambda),'eta and lambda should be the same length.');
 lrho = log(rho);
 leta = log(eta);
 llambda = log(lambda);
+llambda_interpol = log(linspace(lambda(2),lambda(end),10000));
 
 
 %fit data with smoothing splines
 % pprho = fit(lambda,lrho,fitType,fitOptions);
 if ~isempty(p)
     ppx1 = csaps(llambda,lrho,p);
-    fitrho = fnval(ppx1,llambda);
+    fitrho = fnval(ppx1,llambda_interpol);
     figure(fig+2)
     fnplt(ppx1)
     hold on
@@ -45,15 +46,18 @@ if ~isempty(p)
     hold off
 
     figure(fig+3)
-    plot(lambda,fitrho)
+    plot((linspace(lambda(2),lambda(end),10000)),fitrho)
     hold on
     plot(lambda,lrho,'.')
     title('fit of extracted data on normal scales')
     hold off
 
-    ppx = csaps(lambda,fitrho,p2);
+    ppx = csaps((linspace(lambda(2),lambda(end),10000)),fitrho,p2);
     % ppeta = fit(lambda,leta,fitType,fitOptions);
-    ppy = csaps(lambda,leta,p3);
+    ppy1 = csaps(llambda,leta,p);
+    fiteta = fnval(ppy1,llambda_interpol);
+
+    ppy = csaps(linspace(lambda(2),lambda(end),10000),fiteta,p3);
     %pp-form, first and second derivatives
 else
     ppx = csaps(lambda,lrho);
@@ -83,18 +87,18 @@ ddppx = fnder(ppx,2);
 ddppy = fnder(ppy,2);
 
 %evaluate functions between lambda min and max
-dfrho = fnval(dppx,lambda);
-dfeta = fnval(dppy,lambda);
-ddfrho = fnval(ddppx,lambda);
-ddfeta = fnval(ddppy,lambda);
+dfrho = fnval(dppx,linspace(lambda(2),lambda(end),10000));
+dfeta = fnval(dppy,linspace(lambda(2),lambda(end),10000));
+ddfrho = fnval(ddppx,linspace(lambda(2),lambda(end),10000));
+ddfeta = fnval(ddppy,linspace(lambda(2),lambda(end),10000));
 
 %cuvature
 kappa = (dfrho.*ddfeta - ddfrho.*dfeta)./(dfrho.^2 + dfeta.^2).^1.5;
 
 %maximum curvature
 % [~,ikappamax] = max(abs(kappa));
-[~,ikappamax] = max(kappa);
-
+[~,ikappamax] = max(kappa(10:end-100));
+ikappamax = ikappamax + 9;
 %---TEST---%
 % zrho = fnzeros(dppx);
 % if ~isempty(zrho)
@@ -111,10 +115,11 @@ kappa = (dfrho.*ddfeta - ddfrho.*dfeta)./(dfrho.^2 + dfeta.^2).^1.5;
 % end
 % return;
 %----------%
+fitlambda = linspace(lambda(2),lambda(end),10000);
 
-rho_c = rho(ikappamax);
-eta_c = eta(ikappamax);
-lambda_c = lambda(ikappamax);
+rho_c = fitrho(ikappamax);
+eta_c = fiteta(ikappamax);
+lambda_c = fitlambda(ikappamax);
 
 % ipt = findchangepts(leta,'Statistic','linear','MaxNumChanges',2);
 % iptm = round(mean(ipt));
@@ -123,7 +128,7 @@ lambda_c = lambda(ikappamax);
 % lambda_c = lambda(iptm);
 
 if nargin>4
-    figure(fig+6);plot(lambda,kappa,lambda_c,kappa(ikappamax),'o');
+    figure(fig+6);plot(fitlambda(10:end-100),kappa(10:end-100),lambda_c,kappa(ikappamax),'o');
     figure(fig+7);loglog(rho,eta, '.' ,rho_c,eta_c,'o');
 end
 

@@ -5,13 +5,17 @@ lambda = lambda(:);
 
 assert(length(rho)==length(lambda),'rho and lambda should be the same length.');
 
+llambda = log(lambda);
+llambda(1) = 0;
 
 
 %fit data with smoothing splines
 % pprho = fit(lambda,lrho,fitType,fitOptions);
 if ~isempty(p)
-    ppx = csaps(lambda,rho,p);
-    
+    ppx1 = csaps(llambda,rho,p);
+    fitrho = fnval(ppx1,llambda);
+
+    ppx = csaps(lambda,fitrho,1);
 else
     ppx = csaps(lambda,rho);
     

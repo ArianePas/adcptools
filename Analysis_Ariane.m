@@ -6,8 +6,8 @@ clc
 RF = 'C:\Users\arian\Documents\internship'; %RootFolder
 addpath(genpath(strcat(RF,'/git/adcptools'))); %path to ADCPTools
 addpath(genpath("C:\Users\arian\Documents\internship\git\adcptools\post_processing")) %% add postprocessing analysis
-dir = 'C:\Users\Ariane.VandePas\Documents\results\Portneuf';
-cd(dir)
+directory = 'C:\Users\Ariane.VandePas\Documents\results\Portneuf';
+cd(directory)
 
 %% Path management ECCC laptop
 % RF = 'C:\Users\arian\Documents\internship'; %RootFolder
@@ -16,54 +16,17 @@ addpath(genpath("C:\Users\Ariane.VandePas\Documents\GitHub\adcptools\+post_proce
 addpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools\+post_processing\cartesian')
 addpath('C:\Users\Ariane.VandePas\Documents\GitHub\adcptools\+post_processing\plot')
  
-dir = 'C:\Users\Ariane.VandePas\Documents\results\Portneuf';
-cd(dir)
+directory = 'C:\Users\Ariane.VandePas\Documents\results\Lauzon';
+cd(directory)
 
 %% load data
-dat = open("C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Portneuf_0\Portneuf.mat");
-wl = open("C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3300Portneuf2009_HNE_NMM_3min.mat");
+dat = open("C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\ADCP 2009\Lauzon_0\Lauzon.mat");
+wl = open('C:\Users\Ariane.VandePas\Documents\Donnees_validation\2009\marégraphes_h_2009_HNE_NMM_3min\marégraphes_h_2009_HNE_NMM_3min\3250Lauzon2009_HNE_NMM_3min.mat' );
 
 %% Information for saving figures
 
-transect = 'Portneuf';
+transect = 'Lauzon';
 
-%% adjustable input values
-
-% starting regularization values
-reg_we = [1,1,1,1,1];
-
-% regularization method
-regmet = 'track';
-
-% mesh sizes
-hor = 150; %[5,5, 15, 25, 25, 50, 100, 100, 150];
-ver =  10; %[1,2.5, 2.5, 2.5, 5, 5, 5, 10, 10];
-
-% temporary
-track = 1;
-
-% FINDING LAMBDA
-
-% Curvature method
-scalingfactorcur = 10000;
-maxregcur = 0.0001;
-regstepcur = 200;
-pcur = [0.8,1,0.999]; %smoothing paramethers for smoothing spline fit (loglogrho, second rho, eta)
-
-%Decay method
-scalingfactordec = 10000000;
-maxregdec = 0.0000001;
-regstepdec = 200;
-pdec = 0.99999;
-
-% minimum error
-max1 = 100000;
-max2 = 100000;
-step1 = 25;
-step2 = 25;
-
-% add continuity regulrization for curvature and decay methods
-con = false;
 
 %% Constituents
 
@@ -81,7 +44,7 @@ water_level.get_parameters();
 V = rdi.VMADCP(dat.dat);
 % V.horizontal_position_provider = HorizontalPositionFromBottomTracking; % possibly modify
 
- V.water_level_object = water_level;  % return
+V.water_level_object = water_level;  % return
 
 B = BathymetryScatteredPoints(V);
 
@@ -103,7 +66,55 @@ mesh_makers = SigmaZetaMeshFromVMADCP(ef, xs, B, 'NoExpand', V);
 % input preferred mresh size
 
 hver = 5; % depth mesh cell in m
-hhor = 25; %width mesh cell in m
+hhor = 50; %width mesh cell in m
+
+% create figure to decide which transects to include
+figure
+yyaxis left
+plot(V.time,V.fileid,'.')
+hold on
+yyaxis right
+plot(V.water_level_object.time,V.water_level_object.level,'.')
+hold off
+
+%% adjustable input values
+
+% starting regularization values
+reg_we = [1,1,1,1,1];
+
+% regularization method
+regmet = 'track';
+
+% mesh sizes
+hor = [50,25,15];
+ver =  [5,5,2.5];
+
+% included tracks
+% track = [1,2,4,5,6,7,8,9,11,12,13,14] % Portneuf[4,11,25,29]; % Quebec
+track = [3,8,14,16,19];
+
+% FINDING LAMBDA
+
+% Curvature method
+scalingfactorcur = 1;
+maxregcur = 1;
+regstepcur = 20;
+pcur = [0.8,1,0.999]; %smoothing paramethers for smoothing spline fit (loglogrho, second rho, eta)
+
+%Decay method
+scalingfactordec = 100000;
+maxregdec = 1;
+regstepdec = 20;
+pdec = 0.07;
+
+% minimum error
+max1 = 10000;
+max2 = 10000;
+step1 = 10;
+step2 = 10;
+
+% add continuity regulrization for curvature and decay methods
+con = false;
 
 %% select max & min in that order
 
@@ -140,7 +151,7 @@ fprintf('Used vertical mesh size is: %.2f\n', actver);
 mesh = mesh_makers.get_mesh(resn = n, resz = z);
 
 %% multiple meshsizes
-cd(dir)
+
     r = zeros(length(track),length(hor));
     e = zeros(length(track),length(hor));
     l = zeros(length(track),length(hor));
@@ -152,7 +163,7 @@ cd(dir)
     L3 = cell(2,length(hor));
 
 for i = 1:length(hor)
-    
+    cd(directory)
     %install mesh size
     hhor = hor(i);
     hver = ver(i);
@@ -177,52 +188,52 @@ for i = 1:length(hor)
 
     % plot solution
 
-    figure(299)
+    close(figure(1))
     flow.plot_solution();
     
     stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'initrun');
-    saveas(figure(299), stringfig1)
-    saveas(figure(229), append(stringfig1,'.jpg'))
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
 
 
     % find lambda with the decay function and maximum curvature
-    %track = unique(V.fileid)
+    
 
     for j = 1:length(track)
-         j = track %remove after tests
-
+        track_cur = track(j);
+       
          % curvature method
          flow.solver.opts.cv_mode = regmet;
-         [rho, lambda,eta] = cross_validate_1D_track(flow, 0, maxregcur, regstepcur,j,con);
+         [rho, lambda,eta] = cross_validate_1D_track(flow, 0, maxregcur, regstepcur,track_cur,con);
          rho = cell2mat(rho);
          eta = cell2mat(eta);
          lambda = lambda * scalingfactorcur;
          [r(j,i),e(j,i),l(j,i)] = l_corner(rho(:,1),eta(:,1),lambda(:,3),pcur(1),pcur(2),pcur(3),300);
          l(j,i) = l(j,i)/scalingfactorcur;
 
-         %save figures
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'loglogcurvature_track_',num2str(j));
-         saveas(figure(302), stringfig1)
+         %save figuresmea
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'loglogcurvature_track_',num2str(track_cur));
+         saveas(figure(302), append(stringfig1,'.fig'))
          saveas(figure(302), append(stringfig1,'.jpg'))
 
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'fitlogcurvature_track_',num2str(j));
-         saveas(figure(304), stringfig1)
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'fitlogcurvature_track_',num2str(track_cur));
          saveas(figure(304), append(stringfig1,'.jpg'))
+         saveas(figure(304), append(stringfig1,'.fig'))
 
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'fitetacurvature_track_',num2str(j));
-         saveas(figure(305), stringfig1)
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'fitetacurvature_track_',num2str(track_cur));
+         saveas(figure(305), append(stringfig1,'.jpg'))
          saveas(figure(305), append(stringfig1,'.jpg'))
 
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'maxcurvature_track_',num2str(j));
-         saveas(figure(306), stringfig1)
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'maxcurvature_track_',num2str(track_cur));
          saveas(figure(306), append(stringfig1,'.jpg'))
+         saveas(figure(306), append(stringfig1,'.fig'))
 
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'etarho_track_',num2str(j));
-         saveas(figure(307), stringfig1)
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'etarho_track_',num2str(track_cur));
          saveas(figure(307), append(stringfig1,'.jpg'))
+         saveas(figure(307), append(stringfig1,'.fig'))
 
           %decay method
-          [rho, lambda,eta] = cross_validate_1D_track(flow, 0, maxregdec,regstepdec,j,con);
+          [rho, lambda,eta] = cross_validate_1D_track(flow, 0, maxregdec,regstepdec,track_cur,con);
           rho = cell2mat(rho);
           eta = cell2mat(eta);
           lambda = lambda*scalingfactordec;
@@ -230,12 +241,12 @@ for i = 1:length(hor)
           l2(j,i) = l2(j,i)/scalingfactordec;
 
           %save figure
-          stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'decayrate_track_',num2str(j));
-          saveas(figure(308), stringfig1)
+          stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'decayrate_track_',num2str(track_cur));
+          saveas(figure(308), append(stringfig1,'.fig'))
           saveas(figure(308), append(stringfig1,'.jpg'))
 
           % optimal regularization
-          [CV, rpc, rps] = flow.cross_validate_2D_track([0,0], [max1,max2], [step1,step2], j);
+          [CV, rpc, rps] = flow.cross_validate_2D_track([0,0], [max1,max2], [step1,step2], track_cur);
           
           figure(309)
           contourf(helpers.symlog(rpc), helpers.symlog(rps), reshape([CV{:,1}]./CV{1,1}, [step1,step2]), 100)
@@ -246,24 +257,29 @@ for i = 1:length(hor)
           ylabel('smoothness lambda (symlog10)')
           title('2D cross-validation: generalization error')
 
-         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), '2D_',num2str(j));
-         saveas(figure(309), stringfig1)
+         stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), '2D_',num2str(track_cur));
+         saveas(figure(309), append(stringfig1,'.fig'))
          saveas(figure(309), append(stringfig1,'.jpg'))
     
          [val,idx] = min(cell2mat(CV(:,1))./cell2mat(CV(1,1)));
-         smoparidx = rem(idx,step2);
-         contparidx = (idx-smoparidx)/step1;
+         if rem(idx,step2) == 0
+             smoparidx = step2;
+             contparidx = idx/step1;
+         else
+            smoparidx = rem(idx,step2);
+            contparidx = ((idx-smoparidx)/step1) + 1;
+         end
 
          l3{1,i}(j) = rpc(smoparidx,contparidx);
          l3{2,i}(j) = rps(smoparidx,contparidx);
     end
 
 % calculate mean lambda values
-
+save(append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'regularization values'), 'l', 'l2', 'l3')
 L(1,i) = mean(l(:,i));
 L2(1,i) = mean(l2(:,i));
 L3{1,i} = mean(l3{1,i}(:));
-L3{2,i} = mean(l3{1,i}(:));
+L3{2,i} = mean(l3{2,i}(:));
     
 % plot results
 
@@ -287,7 +303,7 @@ for k = 1:3 %once for each method
 
     elseif k == 3
         method = 'minerr';
-        reg = [L3(1,i), L3(1,i), L3(2,i), L3(2,i), L3(1,i)];
+        reg = [cell2mat(L3(1,i)), cell2mat(L3(1,i)), cell2mat(L3(2,i)), cell2mat(L3(2,i)), cell2mat(L3(1,i))];
     end
 
 % get model
@@ -343,18 +359,20 @@ D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
     end
     
     
+    
     % RMSE on transect
     [RMSE_cell] = plot_mrse_mesh(mesh, dir, pars,t_plot,constituents,xs,V);
     
     stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'RMSE_dir_',dir);
-    saveas(figure(308 + 2*d), stringfig1)
+    saveas(figure(308 + 2*d), append(stringfig1,'.fig'))
     saveas(figure(308 + 2*d), append(stringfig1,'.jpg'))
-    
+   
+
     % model fits for evenly spaced cells
     plot_ts_random_cells(mesh, dir, pars, t_plot, constituents, xs, V);
     
     stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'cells_dir_',dir);
-    saveas(figure(309 + 2*d), stringfig1)
+    saveas(figure(309 + 2*d), append(stringfig1,'.fig'))
     saveas(figure(309 + 2*d), append(stringfig1,'.jpg'))
     
     % get results for each direction
@@ -365,22 +383,288 @@ D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
     
     [decomp, avg] = D.decompose_function(u{d}); % U-Flow
     
-    figure(315 + d)
-    D.plot_components(decomp, 'velmap')
+    close(figure(1))
+    D.plot_components(decomp, 'velmap');
     stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecom');
-    saveas(figure(315+d), stringfig1)
-    saveas(figure(315+d), append(stringfig1,'.jpg'))
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
 
-    figure(318 + d)
-    D.plot_components(avg, 'velmap')
+    close(figure(1))
+    D.plot_components(avg, 'velmap');
     stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecomavg');
-    saveas(figure(318+d), append(stringfig1,'.jpg'))
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
+    end
+
+   
+end
+
+end
+
+
+%%
+    L = zeros(1,length(hor));
+    L2 = zeros(1,length(hor));
+    L3 = cell(2,length(hor));
+
+for i = 1:length(hor)
+    cd(directory)
+    %install mesh size
+    hhor = hor(i);
+    hver = ver(i);
+
+    dirstr = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver));
+    mkdir(dirstr);
+    cd(dirstr) 
+
+    n = round(lengthriv/hhor);
+    z = round(depthriv/hver);
+    acthor = lengthriv/n;
+    actver = depthriv/z;
+    
+    fprintf('Used horizontal mesh size is: %.2f\n', acthor);
+    fprintf('Used vertical mesh size is: %.2f\n', actver);
+    
+mesh = mesh_makers.get_mesh(resn = n, resz = z);
+
+    
+L(1,i) = mean(l(:,i));
+L2(1,i) = mean(l2(:,i));
+L3{1,i} = mean(l3{1,i}(:));
+L3{2,i} = mean(l3{2,i}(:));
+    
+% plot results
+
+for k = 3 %once for each method
+
+    if k == 1
+        method = 'curvature';
+        if con
+            reg = [L(1,i), L(1,i), L(1,i), L(1,i), L(1,i)];
+        else
+            reg = [0,0, L(1,i), L(1,i), 0];
+        end
+
+    elseif k ==2
+        method = 'decay';
+        if con
+            reg = [L2(1,i), L2(1,i), L2(1,i), L2(1,i), L2(1,i)];
+        else
+            reg = [0,0, L2(1,i), L2(1,i), 0];
+        end
+
+    elseif k == 3
+        method = 'minerr';
+        reg = [cell2mat(L3(1,i)), cell2mat(L3(1,i)), cell2mat(L3(2,i)), cell2mat(L3(2,i)), cell2mat(L3(1,i))];
+    end
+
+% get model
+flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg);
+
+%preparation for analyzing individual cells
+[pars_U, pars_V, pars_W] = sort_flow_output(flow); % define to get model for single direction
+
+t0 = (datenum(V.time(1)))*86400; % determine time for plotting single measurements 
+t_end = (datenum(V.time(end)))*86400;  
+t_plot = (t0:10:t_end);
+
+% prepare plotting results
+tim = flow.solver.adcp.time; % get time for plotting
+Tlim(1)= min(tim);
+M2T = flow.solver.model.periods(1,1)/(3600*24);
+Tlim(2) = Tlim(1) + M2T;
+Tlimn = datenum(Tlim);
+limu = {[Tlimn(1), Tlimn(2)];... %days
+        [min(flow.solver.mesh.n_left)+.5, max(flow.solver.mesh.n_right)-.5];...
+        [0,1]};
+    
+% evaluation resolution
+tres = 60;
+evres = [tres, flow.solver.mesh.nverticals, flow.solver.mesh.max_ncells_vertical]; % t, y , sigma
+X = get_coords(limu, evres);
+    
+reg_idx = 1; % only relevant if multiple regularization parameter settings are entered upon model fitting.
+u = get_var(flow, X, reg_idx); % Vector variable on regular sigma grid. Three cells are the three velocity components.
+    
+[H, Wl, Zb] = get_H(X, flow, 0);
+    
+    if size(H, 3) == 1
+        H = repmat(H, [1,1,numel(X.sig)]);
+    end
+X.Z = Zb + X.Sig.*H;
+    
+D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
+    
+
+% analyze 3 velocity directions
+
+    for d = 1:3
+    if d == 1
+        dir = 'U';
+        pars = pars_U;
+    elseif d == 2
+        dir = 'V';
+        pars = pars_V;
+    else
+        dir = 'W';
+        pars = pars_W;
+    end
+    
+    
+ 
+    % RMSE on transect
+    [RMSE_cell] = plot_mrse_mesh(mesh, dir, pars,t_plot,constituents,xs,V);
+
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'RMSE_dir_',dir);
+    saveas(figure(308 + 2*d), append(stringfig1,'.fig'))
+    saveas(figure(308 + 2*d), append(stringfig1,'.jpg'))
+
+    % model fits for evenly spaced cells
+    plot_ts_random_cells(mesh, dir, pars, t_plot, constituents, xs, V);
+    
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'cells_dir_',dir);
+    saveas(figure(309 + 2*d), append(stringfig1,'.fig'))
+    saveas(figure(309 + 2*d), append(stringfig1,'.jpg'))
+    
+    % get results for each direction
+    % Plot some variables
+    name = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'dir_',dir,'results');
+    sav = 1;
+    animate_solution(u{d}, X, name, sav)
+    
+    [decomp, avg] = D.decompose_function(u{d}); % U-Flow
+    
+    close(figure(1))
+    D.plot_components(decomp, 'velmap');
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecom');
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
+
+    close(figure(1))
+    D.plot_components(avg, 'velmap');
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecomavg');
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
     end
 
 end
 
 end
+%%
+ k = 3 %once for each method
+ i = 1
+    if k == 1
+        method = 'curvature';
+        if con
+            reg = [L(1,i), L(1,i), L(1,i), L(1,i), L(1,i)];
+        else
+            reg = [0,0, L(1,i), L(1,i), 0];
+        end
 
+    elseif k ==2
+        method = 'decay';
+        if con
+            reg = [L2(1,i), L2(1,i), L2(1,i), L2(1,i), L2(1,i)];
+        else
+            reg = [0,0, L2(1,i), L2(1,i), 0];
+        end
+
+    elseif k == 3
+        method = 'minerr';
+        reg = [cell2mat(L3(1,i)), cell2mat(L3(1,i)), cell2mat(L3(2,i)), cell2mat(L3(2,i)), cell2mat(L3(1,i))];
+    end
+
+% get model
+flow = get_tidal_model(V, constituents, mesh, B, xs, ef, reg);
+
+%preparation for analyzing individual cells
+[pars_U, pars_V, pars_W] = sort_flow_output(flow); % define to get model for single direction
+
+t0 = (datenum(V.time(1)))*86400; % determine time for plotting single measurements 
+t_end = (datenum(V.time(end)))*86400;  
+t_plot = (t0:10:t_end);
+
+% prepare plotting results
+tim = flow.solver.adcp.time; % get time for plotting
+Tlim(1)= min(tim);
+M2T = flow.solver.model.periods(1,1)/(3600*24);
+Tlim(2) = Tlim(1) + M2T;
+Tlimn = datenum(Tlim);
+limu = {[Tlimn(1), Tlimn(2)];... %days
+        [min(flow.solver.mesh.n_left)+.5, max(flow.solver.mesh.n_right)-.5];...
+        [0,1]};
+    
+% evaluation resolution
+tres = 60;
+evres = [tres, flow.solver.mesh.nverticals, flow.solver.mesh.max_ncells_vertical]; % t, y , sigma
+X = get_coords(limu, evres);
+    
+reg_idx = 1; % only relevant if multiple regularization parameter settings are entered upon model fitting.
+u = get_var(flow, X, reg_idx); % Vector variable on regular sigma grid. Three cells are the three velocity components.
+    
+[H, Wl, Zb] = get_H(X, flow, 0);
+    
+    if size(H, 3) == 1
+        H = repmat(H, [1,1,numel(X.sig)]);
+    end
+X.Z = Zb + X.Sig.*H;
+    
+D = post_processing.Decomposition(X = X, H = H, wl = Wl(:,1), zb = Zb(1,:)');
+    
+
+% analyze 3 velocity directions
+
+    for d = 1:3
+    if d == 1
+        dir = 'U';
+        pars = pars_U;
+    elseif d == 2
+        dir = 'V';
+        pars = pars_V;
+    else
+        dir = 'W';
+        pars = pars_W;
+    end
+    
+    
+   
+    % RMSE on transect
+    [RMSE_cell] = plot_mrse_mesh(mesh, dir, pars,t_plot,constituents,xs,V);
+
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'RMSE_dir_',dir);
+    saveas(figure(308 + 2*d), append(stringfig1,'.fig'))
+    saveas(figure(308 + 2*d), append(stringfig1,'.jpg'))
+
+   
+    % model fits for evenly spaced cells
+    plot_ts_random_cells(mesh, dir, pars, t_plot, constituents, xs, V);
+    
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'cells_dir_',dir);
+    saveas(figure(309 + 2*d), append(stringfig1,'.fig'))
+    saveas(figure(309 + 2*d), append(stringfig1,'.jpg'))
+    
+    % get results for each direction
+    % Plot some variables
+    name = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'dir_',dir,'results');
+    sav = 1;
+    animate_solution(u{d}, X, name, sav)
+    
+    [decomp, avg] = D.decompose_function(u{d}); % U-Flow
+    
+    close(figure(1))
+    D.plot_components(decomp, 'velmap');
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecom');
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
+
+    close(figure(1))
+    D.plot_components(avg, 'velmap');
+    stringfig1 = append(transect, '_hor_', num2str(hhor), '_ver_', num2str(hver), 'method__',method,'_dir_',dir, '_resultsdecomavg');
+    saveas(figure(1), append(stringfig1,'.fig'))
+    saveas(figure(1), append(stringfig1,'.jpg'))
+    end
+
+    
 
 
 %% functions
